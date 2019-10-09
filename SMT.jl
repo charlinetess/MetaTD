@@ -15,8 +15,6 @@ using FileIO
 ###################################################################################
 ###################################################################################
 
-# Define activity as a function of position 
-
 # Compute the activity of the place cells
 function  placecells(pos,centres,width)
 #
@@ -173,7 +171,7 @@ function train_weights(parameters,featuresexperiment,NameOfFile)
                                ##########  ##########  ##########  ########## 
                            for indextrial=1:featuresexperiment[:numberoftrials] ##########  
                                # start scope of variables: 
-                               let indexstart, positionstart, currentposition, re,k,t,historyX,historyY,    TDerrors,arg,timeout,prevdir
+                               let indexstart, positionstart, currentposition, re,k,t,historyX,historyY,    TDerrors,timeout,prevdir
                                    # Chose starting position :     
                                    indexstart=rand(1:4); # take indexstart-th starting position : chose     randomnly between 4 possibilities 1 East 2 North 3 West 4 South
                                    positionstart=[parameters[:Xstart][indexstart] parameters[:Ystart][indexstart]];
@@ -189,8 +187,7 @@ function train_weights(parameters,featuresexperiment,NameOfFile)
                                    historyX=Float64[];
                                    historyY=Float64[];
                                    #valuemap=Float64[];
-                                   TDerrors=Float64[];
-                                   arg=0;        
+                                   TDerrors=Float64[];     
                                    timeout=0;        
                                    prevdir=[0 0];    
                                    ##########  ##########  ##########  ##########   ########## 
@@ -241,7 +238,7 @@ function train_weights(parameters,featuresexperiment,NameOfFile)
                                            indexaction=indice(SumPactioncell,x); # Chose which action     between the 8 possibilities
                                            argdecision=parameters[:angles][indexaction]; # compute the coreesponding     angle 
                                            newdir=[cos(argdecision) sin(argdecision)];
-                                           dir=(newdir./(1.0+momentum).+momentum.*prevdir./(1.0+momentum));     # smooth trajectory to avoid sharp angles
+                                           dir=(newdir./(1.0+parameters[:momentum]).+parameters[:momentum].*prevdir./(1.0+parameters[:momentum]));     # smooth trajectory to avoid sharp angles
                                                if !(norm(dir)==0)
                                                    global dir
                                                    dir=dir./norm(dir); # normalize so we control the exact    speed of the rat
@@ -260,7 +257,7 @@ function train_weights(parameters,featuresexperiment,NameOfFile)
                                            prevdir=dir;                           
                                            # compute new activity of pace cells :
                                            # actplacecell=place_activity(   position[1],position[2],Xplacecell,Yplacecell,σ);
-                                           actplacecell=placecells([currentposition[1],currentposition[2]],   parameters[:centres],parameters[:σPC]);
+                                           actplacecell=placecells([currentposition[1],currentposition[2]], parameters[:centres],parameters[:σPC]);
                        
                                                if re==1 # if we are on the platform 
                                                   ###  Compute error ###
