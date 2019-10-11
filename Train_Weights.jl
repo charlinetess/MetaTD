@@ -322,3 +322,42 @@ end # end function
 
 @time  train_weights(parameters,featuresexperiment,NameOfFile)
 
+
+# plot latency to be sure it has worked
+
+
+data_train=load("LearnWeights.jld2");
+parameters=data_train["parameters"];
+features=data_train["features"];
+data=data_train["data"];
+
+using PyPlot
+ioff()
+fig = figure("Test plot latencies",figsize=(9,9))
+#ax = fig[:add_subplot](1,1,1)
+
+xlabel("trials")
+ylabel("latencies")      
+
+
+
+for k=1:numberofstrategies
+# Calculate standard deviation 
+#err=[std([rats.experiment[n].day[k].trial[i].Latency for n in 1:numberofrats]; corrected=false) for i in 1:numberoftrials] ;
+
+# Calculate the lower value for the error bar : 
+uppererror = [std([data[n][k].currentplatform[i].latency for n in 1:numberofrats]; corrected=false)./sqrt(numberofrats) for i in 1:numberoftrials] ;
+lowererror = [std([data[n][k].currentplatform[i].latency for n in 1:numberofrats]; corrected=false)./sqrt(numberofrats) for i in 1:numberoftrials] ;
+
+errs=[lowererror,uppererror];
+
+PyPlot.plot(k*numberoftrials.+(0:numberoftrials-1), [mean([data[n][k].currentplatform[i].latency for n in 1:numberofrats]) for i in 1:numberoftrials ], marker="None",linestyle="-",color="darkgreen",label="Base Plot")
+  
+
+PyPlot.errorbar(k*numberoftrials.+(0:numberoftrials-1),[mean([data[n][k].currentplatform[i].latency for n in 1:numberofrats]) for i in 1:numberoftrials],yerr=errs,fmt="o",color="k")
+end
+
+show()
+
+
+
