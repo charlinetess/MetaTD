@@ -88,11 +88,8 @@ end
 #############################################################################
 indexrat=1; 
 
-indexstrategy=1; # Strategy the agent has chosen 
-indexcurrentgoal=2; # real goal where the reward is 
 
-estimated_actionmap=data[indexrat][indexstrategy].actionmap; # policy associated to this strategy 
-estimated_valuemap=data[indexrat][indexstrategy].valuemap; # value map associated to this policy 
+
 
 numberofstrategies=8;
 
@@ -110,11 +107,6 @@ h=-0.3; # define the cut. Threshold of activation to be kept
 # show()
 
 
-currentxp=parameters[:Xplatform][indexcurrentgoal]; 
-currentyp=parameters[:Yplatform][indexcurrentgoal];
-estimatedxp=parameters[:Xplatform][indexcurrentgoal];
-estimatedyp=parameters[:Yplatform][indexcurrentgoal];
-
 numberoftrialstest=4;
 numberofdaystest=2;
 
@@ -128,22 +120,30 @@ global historySPE=[];
 global historytemperature=[];
 
 global temperature=2; # we start with 2 and will adjust this as a function of the confidence 
-global confidence=0;
 
-
+currentexperiment=[]; # TO CHANGE WHEN CONSIDERING MULTIPLE RUNS 
 
 for indexday=1:numberofdaystest
-let real_err=0,estimated_errors=zeros(numberofstrategies)
+	println("indexday$(indexday)")
+let real_err=0,estimated_errors=zeros(numberofstrategies),currentxp,currentyp, currentday
+	indexcurrentgoal=rand(1:numberofstrategies); # real goal where the reward is 
+	currentxp=parameters[:Xplatform][indexcurrentgoal]; 
+	currentyp=parameters[:Yplatform][indexcurrentgoal];
 
-	# chose strategy 
-	minimum(estimated_errors.-real_err*ones(length(estimated_errors))) # if this is more than one take random 
-	indexstrat=argmin(estimated_errors.-real_err*ones(length(estimated_errors)));
-	# by default gives one if there are multiple solutions 
+	currentday=[];
 
+	for indextrial=1:numberoftrialstest # at every trial we define the new strategy that the rat will follow 
+		println("indextrial$(indextrial)")
+		let indexstrategy, estimated_actionmap, estimated_valuemap, k,t, timeout, prevdir,re,indexstart,currentposition,confidence=2, temperature=sigmoid(confidence)[1]; # at start of a trial the agent is confident about the strategy to follow 
+			# chose strategy 
+			if  !(length(findall((estimated_errors.-real_err*ones(length(estimated_errors))).==minimum(estimated_errors.-real_err*ones(length(estimated_errors)))))==1)  # if there are more than one potential favourite strategies, we chose randomly among them 
+				indexstrategy=rand(findall((estimated_errors.-real_err*ones(length(estimated_errors))).==minimum(estimated_errors.-real_err*ones(length(estimated_errors)))))
+			else
+				indexstrategy=argmin(estimated_errors.-real_err*ones(length(estimated_errors)));
+			end
+			estimated_actionmap=data[indexrat][indexstrategy].actionmap; # policy associated to this strategy 
+			estimated_valuemap=data[indexrat][indexstrategy].valuemap; # value map associated to this policy 
 
-	for indextrial=1:numberoftrialstest
-
-		let k,t, timeout, prevdir,re,indexstart,currentposition
 			# Initialise index to save the trajectory and the values 
 			k=1;
 			# initialise time 
@@ -187,7 +187,6 @@ let real_err=0,estimated_errors=zeros(numberofstrategies)
 					   end
 
 					# Compute temperature out of confidence :
-					global confidence 
 					temperature=sigmoid(confidence)[1];
 					push!(historytemperature,temperature )
 					# Compute probability distribution :
@@ -249,7 +248,7 @@ let real_err=0,estimated_errors=zeros(numberofstrategies)
 
 					# update confidence based on this strategy prediction error  : 
 					SPE=real_err-estimated_errors[indexstrategy];  # strategy prediction error 
-					confidence=confidencedynamics(confidence,SPE)
+					confidence=confidencedynamics(confidence,SPE) # confidence gets a shot of -1 when it thinks it is on the goal but does not receive reward, 0 when nothing surprising happens and 1 when it finds the goal without having planned that this is where the goal is
 					push!(historySPE,SPE)
 					push!(historyconfidence,confidence)
 					push!(real_TDerrors,real_err);
@@ -258,12 +257,13 @@ let real_err=0,estimated_errors=zeros(numberofstrategies)
 					t=parameters[:times][k]; # counting time
 					##################################################            
 			end # end trial 
-
+			currenttrial=(trajectory=hcat(historyX,historyY),historySPE=historySPE,latency=t,historyconfidence=historyconfidence,real_TDerrors=real_TDerrors,estimated_TDerrors=estimated_TDerrors,historytemperature=historytemperature,real_platform=[currentxp,currentyp],indexstrategy=indexstrategy); # Creating the current trial with all    its fields
+            push!(currentday,currenttrial);
 		end # end scope t, k , etc..
-
 	end # end loop over trials 
-
+	push!(currentexperiment,currentday)
 end # end scope of error, etc..
+
 end # end loop over days 
 
 
@@ -280,7 +280,7 @@ show()
 
 
 theta=0:pi/50:(2*pi+pi/50); # to plot circles 
-# pot trajectory 
+# plot trajectory 
 figure()
 plot(parameters[:R]*cos.(theta),parameters[:R]*sin.(theta),"k-")
 for k=1:numberofstrategies
@@ -289,17 +289,21 @@ end
 plot(historyX,historyY,"b")
 show()
 
+# chose day 
+indexday=1;
+indextrial=1;
+
 # plot confidence evolution 
 subplot(5,1,1)
-plot(historyconfidence)
+plot(currentexperiment[indexday][indextrial].historyconfidence)
 subplot(5,1,2)
-plot(historytemperature)
+plot(currentexperiment[indexday][indextrial].historytemperature)
 subplot(5,1,3)
-plot(historySPE)
+plot(currentexperiment[indexday][indextrial].historySPE)
 subplot(5,1,4)
-plot(real_TDerrors)
+plot(currentexperiment[indexday][indextrial].real_TDerrors)
 subplot(5,1,5)
-plot(estimated_TDerrors[indexstrategy])
+plot(currentexperiment[indexday][indextrial].estimated_TDerrors[currentexperiment[indexday][indextrial].indexstrategy])
 show()
 
 
@@ -315,8 +319,22 @@ show()
 
 
 
+using PyPlot
+for k=1:numberofdaystest
+# Calculate standard deviation 
+#err=[std([rats.experiment[n].day[k].trial[i].Latency for n in 1:numberofrats]; corrected=false) for i in 1:numberoftrials] ;
 
+# Calculate the lower value for the error bar : 
+#uppererror = [std([data[n][k].currentplatform[i].latency for n in 1:numberofrats]; corrected=false)./sqrt(numberofrats) for i in 1:numberoftrials] ;
+#lowererror = [std([data[n][k].currentplatform[i].latency for n in 1:numberofrats]; corrected=false)./sqrt(numberofrats) for i in 1:numberoftrials] ;
 
+#errs=[lowererror,uppererror];
+
+PyPlot.plot(k*numberoftrialstest.+(0:numberoftrialstest-1), [currentexperiment[k][i].latency for i in 1:numberoftrialstest ], marker="None",linestyle="-",color="darkgreen",label="Base Plot")
+  
+
+#PyPlot.errorbar(k*numberoftrials.+(0:numberoftrials-1),[mean([data[n][k].currentplatform[i].latency for n in 1:numberofrats]) for i in 1:numberoftrials],yerr=errs,fmt="o",color="k")
+end
 
 
 
