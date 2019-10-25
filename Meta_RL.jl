@@ -95,8 +95,8 @@ numberofstrategies=8;
 
 
 # parameters for actor's activation function: 
-β=1; # define the steepness of the function. the highest the closest to heaviside 
-h=-0.3; # define the cut. Threshold of activation to be kept
+β=5; # define the steepness of the function. the highest the closest to heaviside 
+h=-0.2; # define the cut. Threshold of activation to be kept
 # gain factor 
 ρ=2;
 
@@ -110,200 +110,199 @@ h=-0.3; # define the cut. Threshold of activation to be kept
 numberoftrialstest=4;
 numberofdaystest=2;
 
-global historyX=Float64[];
-global historyY=Float64[];
-#valuemap=Float64[];
-global real_TDerrors=Float64[];
-global estimated_TDerrors=[];
-global historyconfidence=[];
-global historySPE=[];
-global historytemperature=[];
-
-global temperature=2; # we start with 2 and will adjust this as a function of the confidence 
 
 currentexperiment=[]; # TO CHANGE WHEN CONSIDERING MULTIPLE RUNS 
+for indexrat=1:numberofrats
+	println(indexrat)
+	let currentrat=[];
 
-for indexday=1:numberofdaystest
-	println("indexday$(indexday)")
-let real_err=0,estimated_errors=zeros(numberofstrategies),currentxp,currentyp, currentday
-	indexcurrentgoal=rand(1:numberofstrategies); # real goal where the reward is 
-	currentxp=parameters[:Xplatform][indexcurrentgoal]; 
-	currentyp=parameters[:Yplatform][indexcurrentgoal];
+		for indexday=1:numberofdaystest
+		println("indexday$(indexday)")
+			let real_err=0,estimated_errors=zeros(numberofstrategies),currentxp,currentyp, currentday,real_re=0;
+				indexcurrentgoal=rand(1:numberofstrategies); # real goal where the reward is 
+				currentxp=parameters[:Xplatform][indexcurrentgoal]; 
+				currentyp=parameters[:Yplatform][indexcurrentgoal];
 
-	currentday=[];
+				currentday=[];
 
-	for indextrial=1:numberoftrialstest # at every trial we define the new strategy that the rat will follow 
-		println("indextrial$(indextrial)")
-		let indexstrategy, estimated_actionmap, estimated_valuemap, k,t, timeout, prevdir,re,indexstart,currentposition,confidence=2, temperature=sigmoid(confidence)[1]; # at start of a trial the agent is confident about the strategy to follow 
-			# chose strategy 
-			if  !(length(findall((estimated_errors.-real_err*ones(length(estimated_errors))).==minimum(estimated_errors.-real_err*ones(length(estimated_errors)))))==1)  # if there are more than one potential favourite strategies, we chose randomly among them 
-				indexstrategy=rand(findall((estimated_errors.-real_err*ones(length(estimated_errors))).==minimum(estimated_errors.-real_err*ones(length(estimated_errors)))))
-			else
-				indexstrategy=argmin(estimated_errors.-real_err*ones(length(estimated_errors)));
-			end
-			estimated_actionmap=data[indexrat][indexstrategy].actionmap; # policy associated to this strategy 
-			estimated_valuemap=data[indexrat][indexstrategy].valuemap; # value map associated to this policy 
+				for indextrial=1:numberoftrialstest # at every trial we define the new strategy that the rat will follow 
+					println("indextrial$(indextrial)")
+					let indexstrategy, estimated_actionmap, estimated_valuemap, k,t, timeout, prevdir,re,indexstart,currentposition,confidence=2, temperature=sigmoid(confidence)[1], historyX=Float64[],historyY=Float64[],real_TDerrors=Float64[],estimated_TDerrors=[],historyconfidence=[],historySPE=[],historytemperature=[]; # at start of a trial the agent is confident about the strategy to follow 
 
-			# Initialise index to save the trajectory and the values 
-			k=1;
-			# initialise time 
-			t=parameters[:times][k];      
-			timeout=0;        
-			prevdir=[0 0];   
-			# Initialize reward 
-			re=0;
-			real_re=0;
-			# Chose starting position :     
-			indexstart=rand(1:4); # take indexstart-th starting position : chose     randomnly between 4 possibilities 1 East 2 North 3 West 4 South
-			positionstart=[parameters[:Xstart][indexstart] parameters[:Ystart][indexstart]];
-			currentposition=positionstart;
+						if  !(length(findall((estimated_errors).==minimum(estimated_errors)))==1)  # if there are more than one potential favourite strategies, we chose randomly among them 
+							indexstrategy=rand(findall((estimated_errors).==minimum(estimated_errors)))
+						else
+							indexstrategy=argmin(estimated_errors);
+						end
 
+						estimated_actionmap=data[indexrat][indexstrategy].actionmap; # policy associated to this strategy 
+						estimated_valuemap=data[indexrat][indexstrategy].valuemap; # value map associated to this policy 
 
-			while t<=parameters[:T] && real_re==0
-
-					   if t==parameters[:T]
-					       X=currentxp;
-					       Y=currentyp;
-					       currentposition=[X Y];
-					       timeout=1; # if we have to put the rat on the platform     then we dont reinforce the actor but only the critic
-					   end
-					# Store former position to be able to draw trajectory
-					push!(historyX,currentposition[1]); 
-					push!(historyY,currentposition[2]);
-
-					    # compute new activity of pace cells :
-					# actplacecell=place_activity(   position[1],position[2],Xplacecell,Yplacecell,σ); # this    function is wrong 
-					actplacecell=placecells([currentposition[1],currentposition[2]],   parameters[:centres],parameters[:σPC]);
-
-					### Compute Critic ###
-					critic=[(transpose(actplacecell)*data[indexrat][indexstrategy].valuemap)[1] for indexstrategy=1:numberofstrategies]; # current estimation of the future discounted reward - computed for every strategy 
-					C=dot(estimated_valuemap,actplacecell); # compute current value using the current belief 
-
-					####### Take decision and move to new position : ########
-					#  Compute action cell activity    
-					actactioncell=transpose(estimated_actionmap)*actplacecell; # careful z    contains place cells in rows and action cells in column 
-					   if maximum(actactioncell)>=100
-					       actactioncell=100*actactioncell./maximum(actactioncell); 
-					   end
-
-					# Compute temperature out of confidence :
-					temperature=sigmoid(confidence)[1];
-					push!(historytemperature,temperature )
-					# Compute probability distribution :
-					Pactioncell=exp.(temperature*actactioncell)./sum(exp.(temperature*actactioncell)); 
-					# Compute summed probability distribution:
-					#SumPactioncell=cumul(Pactioncell);
-					SumPactioncell=[sum(Pactioncell[1:k]) for k=1:length(Pactioncell)    ]
-
-					# Compute summed probability distribution:
-					# SumPactioncell=cumul(Pactioncell); # other possibility 
-					# Generate uniform number between 0 and 1 :
-					x=rand();
-
-					# now chose action: 
-					indexaction=indice(SumPactioncell,x); # Chose which action     between the 8 possibilities
-					argdecision=parameters[:angles][indexaction]; # compute the coreesponding     angle 
-					newdir=[cos(argdecision) sin(argdecision)];
-					dir=(newdir./(1.0+parameters[:momentum]).+parameters[:momentum].*prevdir./(1.0+parameters[:momentum]));     # smooth trajectory to avoid sharp angles
-					   if !(norm(dir)==0)
-					       global dir
-					       dir=dir./norm(dir); # normalize so we control the exact    speed of the rat
-					   end
-					formerposition=currentposition;
-					# Compute new position : 
-					currentposition=currentposition.+parameters[:dt].*parameters[:speed].*dir; 
-					if currentposition[1]^2+currentposition[2]^2>=parameters[:R]^2 # if we are outside of circle, move a lil bit 
-					   currentposition = (currentposition./norm(currentposition))*(parameters[:R]     - parameters[:R]/50);
-					   if !(norm(currentposition-formerposition)==0)
-					       dir=(currentposition-formerposition)./norm(    currentposition-formerposition);
-					   else
-					       dir=[0 0]
-					   end
-					end
-					prevdir=dir;                           
-					# compute new activity of pace cells :
-					# actplacecell=place_activity(   position[1],position[2],Xplacecell,Yplacecell,σ);
-					  ###  Compute reward ### 
-					real_re=reward(currentposition[1],currentposition[2],currentxp,currentyp,parameters[:r]); # compute the reward that tge agent actually gets  
-					estimated_re=[reward(currentposition[1],currentposition[2],data[indexrat][indexstrategy].platformposition[1],data[indexrat][indexstrategy].platformposition[2],parameters[:r]) for indexstrategy=1:numberofstrategies]; # computes the reward the agent believes it is getting 
+						# Initialise index to save the trajectory and the values 
+						
+						k=1;
+						# initialise time 
+						
+						t=parameters[:times][k];      
+						timeout=0;        
+						prevdir=[0 0];   
+						# Initialize reward 
+						re=0;
+						real_re=0;
+						# Chose starting position :     
+						indexstart=rand(1:4); # take indexstart-th starting position : chose     randomnly between 4 possibilities 1 East 2 North 3 West 4 South
+						positionstart=[parameters[:Xstart][indexstart] parameters[:Ystart][indexstart]];
+						currentposition=positionstart;
 
 
-					actplacecell=placecells([currentposition[1],currentposition[2]],   parameters[:centres],parameters[:σPC]);
+						while t<=parameters[:T] && real_re==0
 
-					   if re==1 # if we are on the platform 
-					      ###  Compute error ###
-					       C_next=0;
-					       critic_next=zeros(numberofstrategies)
-					   else 
-					       C_next=dot(estimated_valuemap,actplacecell);# new estimation of the future discounted reward in current belief 
-					       critic_next=[(transpose(actplacecell)*data[indexrat][indexstrategy].valuemap)[1] for indexstrategy=1:numberofstrategies]; # current estimation of the future discounted reward - computed for every strategy 
-					   end 
+								   if t==parameters[:T]
+								       X=currentxp;
+								       Y=currentyp;
+								       currentposition=[X Y];
+								       timeout=1; # if we have to put the rat on the platform     then we dont reinforce the actor but only the critic
+								   end
+								# Store former position to be able to draw trajectory
+								push!(historyX,currentposition[1]); 
+								push!(historyY,currentposition[2]);
+
+								    # compute new activity of pace cells :
+								# actplacecell=place_activity(   position[1],position[2],Xplacecell,Yplacecell,σ); # this    function is wrong 
+								actplacecell=placecells([currentposition[1],currentposition[2]],   parameters[:centres],parameters[:σPC]);
+
+								### Compute Critic ###
+								critic=[(transpose(actplacecell)*data[indexrat][indexstrategy].valuemap)[1] for indexstrategy=1:numberofstrategies]; # current estimation of the future discounted reward - computed for every strategy 
+								C=dot(estimated_valuemap,actplacecell); # compute current value using the current belief 
+
+								####### Take decision and move to new position : ########
+								#  Compute action cell activity    
+								actactioncell=transpose(estimated_actionmap)*actplacecell; # careful z    contains place cells in rows and action cells in column 
+								   if maximum(actactioncell)>=100
+								       actactioncell=100*actactioncell./maximum(actactioncell); 
+								   end
+
+								# Compute temperature out of confidence :
+								temperature=sigmoid(confidence)[1];
+								push!(historytemperature,temperature )
+								# Compute probability distribution :
+								Pactioncell=exp.(temperature*actactioncell)./sum(exp.(temperature*actactioncell)); 
+								# Compute summed probability distribution:
+								#SumPactioncell=cumul(Pactioncell);
+								SumPactioncell=[sum(Pactioncell[1:k]) for k=1:length(Pactioncell)    ]
+
+								# Compute summed probability distribution:
+								# SumPactioncell=cumul(Pactioncell); # other possibility 
+								# Generate uniform number between 0 and 1 :
+								x=rand();
+
+								# now chose action: 
+								indexaction=indice(SumPactioncell,x); # Chose which action     between the 8 possibilities
+								argdecision=parameters[:angles][indexaction]; # compute the coreesponding     angle 
+								newdir=[cos(argdecision) sin(argdecision)];
+								dir=(newdir./(1.0+parameters[:momentum]).+parameters[:momentum].*prevdir./(1.0+parameters[:momentum]));     # smooth trajectory to avoid sharp angles
+								   if !(norm(dir)==0)
+								       dir
+								       dir=dir./norm(dir); # normalize so we control the exact    speed of the rat
+								   end
+								formerposition=currentposition;
+								# Compute new position : 
+								currentposition=currentposition.+parameters[:dt].*parameters[:speed].*dir; 
+								if currentposition[1]^2+currentposition[2]^2>=parameters[:R]^2 # if we are outside of circle, move a lil bit 
+								   currentposition = (currentposition./norm(currentposition))*(parameters[:R]     - parameters[:R]/50);
+								   if !(norm(currentposition-formerposition)==0)
+								       dir=(currentposition-formerposition)./norm(    currentposition-formerposition);
+								   else
+								       dir=[0 0]
+								   end
+								end
+								prevdir=dir;                           
+								# compute new activity of pace cells :
+								# actplacecell=place_activity(   position[1],position[2],Xplacecell,Yplacecell,σ);
+								  ###  Compute reward ### 
+								real_re=reward(currentposition[1],currentposition[2],currentxp,currentyp,parameters[:r]); # compute the reward that tge agent actually gets  
+								estimated_re=[reward(currentposition[1],currentposition[2],data[indexrat][indexstrategy].platformposition[1],data[indexrat][indexstrategy].platformposition[2],parameters[:r]) for indexstrategy=1:numberofstrategies]; # computes the reward the agent believes it is getting 
 
 
-					#### Compute errors  ####
-					estimated_errors=estimated_re.+parameters[:γ]*critic_next[:].-critic[:]; 
+								actplacecell=placecells([currentposition[1],currentposition[2]],   parameters[:centres],parameters[:σPC]);
 
-					real_err=real_re+parameters[:γ]*C_next-C[1]; 
-
-
-					# update confidence based on this strategy prediction error  : 
-					SPE=real_err-estimated_errors[indexstrategy];  # strategy prediction error 
-					confidence=confidencedynamics(confidence,SPE) # confidence gets a shot of -1 when it thinks it is on the goal but does not receive reward, 0 when nothing surprising happens and 1 when it finds the goal without having planned that this is where the goal is
-					push!(historySPE,SPE)
-					push!(historyconfidence,confidence)
-					push!(real_TDerrors,real_err);
-					push!(estimated_TDerrors,estimated_errors[:])
-					k=k+1; # counting steps
-					t=parameters[:times][k]; # counting time
-					##################################################            
-			end # end trial 
-			currenttrial=(trajectory=hcat(historyX,historyY),historySPE=historySPE,latency=t,historyconfidence=historyconfidence,real_TDerrors=real_TDerrors,estimated_TDerrors=estimated_TDerrors,historytemperature=historytemperature,real_platform=[currentxp,currentyp],indexstrategy=indexstrategy); # Creating the current trial with all    its fields
-            push!(currentday,currenttrial);
-		end # end scope t, k , etc..
-	end # end loop over trials 
-	push!(currentexperiment,currentday)
-end # end scope of error, etc..
-
-end # end loop over days 
+								   if real_re==1 # if we are on the platform 
+								      ###  Compute error ###
+								       C_next=0;
+								       critic_next=zeros(numberofstrategies)
+								   else 
+								       C_next=dot(estimated_valuemap,actplacecell);# new estimation of the future discounted reward in current belief 
+								       critic_next=[(transpose(actplacecell)*data[indexrat][indexstrategy].valuemap)[1] for indexstrategy=1:numberofstrategies]; # current estimation of the future discounted reward - computed for every strategy 
+								   end 
 
 
-################ now plot the TD errors so we can have an idea of the range 
+								#### Compute errors  ####
+								estimated_errors=real_re.+parameters[:γ]*critic_next[:].-critic[:]; 
 
-using PyPlot 
-figure()
-for k=3#numberofstrategies
-	plot([estimated_TDerrors[i][k] for i=1:length(estimated_TDerrors)])
-end
-plot(real_TDerrors)
-show()
+								real_err=real_re+parameters[:γ]*C_next-C[1]; 
+								println(real_re)
 
+								# update confidence based on this strategy prediction error  : 
+								#global SPE=real_err-estimated_errors[indexstrategy];  # strategy prediction error 
+								#global SPE=critic[:].-real_re;  # strategy prediction error 
+								SPE=C-real_re;
+								confidence=confidencedynamics(confidence,SPE) # confidence gets a shot of -1 when it thinks it is on the goal but does not receive reward, 0 when nothing surprising happens and 1 when it finds the goal without having planned that this is where the goal is
+								push!(historySPE,SPE)
+								push!(historyconfidence,confidence)
+								push!(real_TDerrors,real_err);
+								push!(estimated_TDerrors,estimated_errors[:])
+								
+								k=k+1; # counting steps
+								
+								t=parameters[:times][k]; # counting time
+								##################################################            
+						end # end trial 
+						currenttrial=(trajectory=hcat(historyX,historyY),historySPE=historySPE,latency=t,historyconfidence=historyconfidence,real_TDerrors=real_TDerrors,estimated_TDerrors=estimated_TDerrors,historytemperature=historytemperature,real_platform=[currentxp,currentyp],indexstrategy=indexstrategy); # Creating the current trial with all    its fields
+				        push!(currentday,currenttrial);
+					end # end scope t, k , etc..
+				end # end loop over trials 
+			push!(currentrat,currentday)
+			end # end scope of error, etc..
 
+		end # end loop over days 
+		push!(currentexperiment,currentrat)
+	end # end scope current rat, actorweght, cirticweight 
+end # end loop over rats 
+
+indexrat=1;
+indexday=1;
+indextrial=2;
 
 theta=0:pi/50:(2*pi+pi/50); # to plot circles 
 # plot trajectory 
 figure()
 plot(parameters[:R]*cos.(theta),parameters[:R]*sin.(theta),"k-")
-for k=1:numberofstrategies
-	plot(data[indexrat][k].platformposition[1].+parameters[:r]*cos.(theta),data[indexrat][k].platformposition[2].+parameters[:r]*sin.(theta),"m-")
-end
-plot(historyX,historyY,"b")
+plot(currentexperiment[indexrat][indexday][indextrial].trajectory[:,1],currentexperiment[indexrat][indexday][indextrial].trajectory[:,2],"b") # plot trajectory 
+plot(currentexperiment[indexrat][indexday][indextrial].real_platform[1].+parameters[:r]*cos.(theta),currentexperiment[indexrat][indexday][indextrial].real_platform[2].+parameters[:r]*sin.(theta),"m-",lw=6) # plot real platform position 
+plot(parameters[:Xplatform][currentexperiment[indexrat][indexday][indextrial].indexstrategy].+parameters[:r]*cos.(theta),parameters[:Yplatform][currentexperiment[indexrat][indexday][indextrial].indexstrategy].+parameters[:r]*sin.(theta),"m-",lw=2) # plot thought platform position 
+
 show()
 
-# chose day 
+
+
+indexrat=1;
 indexday=1;
 indextrial=1;
 
+using PyPlot
 # plot confidence evolution 
 subplot(5,1,1)
-plot(currentexperiment[indexday][indextrial].historyconfidence)
+plot(currentexperiment[indexrat][indexday][indextrial].historyconfidence,label="conf")
+
 subplot(5,1,2)
-plot(currentexperiment[indexday][indextrial].historytemperature)
+plot(currentexperiment[indexrat][indexday][indextrial].historytemperature)
+label("temp")
 subplot(5,1,3)
-plot(currentexperiment[indexday][indextrial].historySPE)
+plot(currentexperiment[indexrat][indexday][indextrial].historySPE)
 subplot(5,1,4)
-plot(currentexperiment[indexday][indextrial].real_TDerrors)
+plot(currentexperiment[indexrat][indexday][indextrial].real_TDerrors)
 subplot(5,1,5)
-plot(currentexperiment[indexday][indextrial].estimated_TDerrors[currentexperiment[indexday][indextrial].indexstrategy])
+plot(currentexperiment[indexrat][indexday][indextrial].estimated_TDerrors[currentexperiment[indexrat][indexday][indextrial].indexstrategy])
 show()
 
 
@@ -320,22 +319,17 @@ show()
 
 
 using PyPlot
-for k=1:numberofdaystest
-# Calculate standard deviation 
-#err=[std([rats.experiment[n].day[k].trial[i].Latency for n in 1:numberofrats]; corrected=false) for i in 1:numberoftrials] ;
-
+for indexday=1:numberofdaystest
 # Calculate the lower value for the error bar : 
-#uppererror = [std([data[n][k].currentplatform[i].latency for n in 1:numberofrats]; corrected=false)./sqrt(numberofrats) for i in 1:numberoftrials] ;
-#lowererror = [std([data[n][k].currentplatform[i].latency for n in 1:numberofrats]; corrected=false)./sqrt(numberofrats) for i in 1:numberoftrials] ;
+uppererror = [std([currentexperiment[indexrat][indexday][indextrial].latency for indexrat in 1:numberofrats]; corrected=false)./sqrt(numberofrats) for indextrial in 1:numberoftrialstest] ;
+lowererror = [std([currentexperiment[indexrat][indexday][indextrial].latency for indexrat in 1:numberofrats]; corrected=false)./sqrt(numberofrats) for indextrial in 1:numberoftrialstest] ;
 
-#errs=[lowererror,uppererror];
+errs=[lowererror,uppererror];
 
-PyPlot.plot(k*numberoftrialstest.+(0:numberoftrialstest-1), [currentexperiment[k][i].latency for i in 1:numberoftrialstest ], marker="None",linestyle="-",color="darkgreen",label="Base Plot")
-  
+PyPlot.plot(indexday*numberoftrialstest.+(0:numberoftrialstest-1), [mean([currentexperiment[indexrat][indexday][indextrial].latency for indexrat in 1:numberofrats]) for indextrial in 1:numberoftrialstest], marker="None",linestyle="-",color="darkgreen",label="Base Plot")
+PyPlot.errorbar(indexday*numberoftrialstest.+(0:numberoftrialstest-1),[mean([currentexperiment[indexrat][indexday][indextrial].latency for indexrat in 1:numberofrats]) for indextrial in 1:numberoftrialstest],yerr=errs,fmt="o",color="k")
 
-#PyPlot.errorbar(k*numberoftrials.+(0:numberoftrials-1),[mean([data[n][k].currentplatform[i].latency for n in 1:numberofrats]) for i in 1:numberoftrials],yerr=errs,fmt="o",color="k")
 end
-
 
 
 
