@@ -326,9 +326,12 @@ lowererror = [std([currentexperiment[indexrat][indexday][indextrial].latency for
 
 errs=[lowererror,uppererror];
 
-PyPlot.plot(indexday*numberoftrialstest.+(0:numberoftrialstest-1), [mean([currentexperiment[indexrat][indexday][indextrial].latency for indexrat in 1:numberofrats]) for indextrial in 1:numberoftrialstest], marker="None",linestyle="-",color="darkgreen",label="Base Plot")
-PyPlot.errorbar(indexday*numberoftrialstest.+(0:numberoftrialstest-1),[mean([currentexperiment[indexrat][indexday][indextrial].latency for indexrat in 1:numberofrats]) for indextrial in 1:numberoftrialstest],yerr=errs,fmt="o",color="k")
+PyPlot.plot((indexday-1)*numberoftrialstest.+(1:numberoftrialstest), [mean([currentexperiment[indexrat][indexday][indextrial].latency for indexrat in 1:numberofrats]) for indextrial in 1:numberoftrialstest], marker="None",linestyle="-",color="darkgreen",label="Base Plot")
+PyPlot.errorbar((indexday-1)*numberoftrialstest.+(1:numberoftrialstest),[mean([currentexperiment[indexrat][indexday][indextrial].latency for indexrat in 1:numberofrats]) for indextrial in 1:numberoftrialstest],yerr=errs,fmt="o",color="k")
 
+rc("font", family="serif",size=14)
+xlabel("Trials ", fontsize=18);
+ylabel("Latency (s)", fontsize=18)
 end
 
 
