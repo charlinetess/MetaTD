@@ -335,7 +335,16 @@ ylabel("Latency (s)", fontsize=18)
 end
 
 
+# plot every platform position 
+theta=0:pi/50:(2*pi+pi/50); # to plot circles 
 
+for indexstrategy=1:numberofstrategies
+	plot(parameters[:Xplatform][indexstrategy]).+parameters[:r]*cos.(theta),parameters[:Yplatform][indexstrategy]).+parameters[:r]*sin.(theta),color="darkred");
+
+end
+	plot(parameters[:R]*cos.(theta),parameters[:R]*sin.(theta),"darkgreen",lw=2)
+
+show()
 
 
 
