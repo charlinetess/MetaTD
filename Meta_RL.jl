@@ -107,7 +107,7 @@ h=-0.2; # define the cut. Threshold of activation to be kept
 
 
 numberoftrialstest=4;
-numberofdaystest=2;
+numberofdaystest=10;
 
 
 currentexperiment=[]; # TO CHANGE WHEN CONSIDERING MULTIPLE RUNS 
@@ -316,7 +316,7 @@ plot(real_TDerrors)
 show()
 
 
-
+# plot all latencies :
 using PyPlot
 for indexday=1:numberofdaystest
 # Calculate the lower value for the error bar : 
@@ -349,5 +349,29 @@ end
 show()
 
 
+
+
+# plot means latencies
+using PyPlot
+
+# create mean latencies per rats : 
+Mean_Lat=[ [mean([currentexperiment[indexrat][indexday][indextrial].latency for indexday=1:numberofdaystest] ) for indextrial=1:numberoftrialstest ] for indexrat=1:numberofrats ];
+# Calculate the error bar : 
+uppererror = [std([Mean_Lat[indexrat][indextrial] for indexrat in 1:numberofrats]; corrected=false)./sqrt(numberofrats) for indextrial in 1:numberoftrialstest] ;
+lowererror = [std([Mean_Lat[indexrat][indextrial] for indexrat in 1:numberofrats]; corrected=false)./sqrt(numberofrats) for indextrial in 1:numberoftrialstest] ;
+errs=[lowererror,uppererror]; # gather 
+
+for indextrial=1:numberoftrialstest
+
+
+PyPlot.plot((indexday-1)*numberoftrialstest.+(1:numberoftrialstest), [mean([currentexperiment[indexrat][indexday][indextrial].latency for indexrat in 1:numberofrats]) for indextrial in 1:numberoftrialstest], marker="None",linestyle="-",color="darkgreen",label="Base Plot")
+PyPlot.errorbar((indexday-1)*numberoftrialstest.+(1:numberoftrialstest),[mean([currentexperiment[indexrat][indexday][indextrial].latency for indexrat in 1:numberofrats]) for indextrial in 1:numberoftrialstest],yerr=errs,fmt="o",color="k")
+
+rc("font", family="serif",size=16)
+title("One-shot learning in artificial watermaze")
+xlabel("Trials ", fontsize=18);
+ylabel("Time to the goal (s)", fontsize=18)
+end
+show()
 
 
