@@ -107,16 +107,16 @@ h=-0.2; # define the cut. Threshold of activation to be kept
 
 
 numberoftrialstest=4;
-numberofdaystest=10;
+numberofdaystest=8;
 
 
 currentexperiment=[]; # TO CHANGE WHEN CONSIDERING MULTIPLE RUNS 
 for indexrat=1:numberofrats
-	println(indexrat)
+	#println(indexrat)
 	let currentrat=[];
 
 		for indexday=1:numberofdaystest
-		println("indexday$(indexday)")
+		#("indexday$(indexday)")
 			let real_err=0,estimated_errors=zeros(numberofstrategies),currentxp,currentyp, currentday,real_re=0;
 				indexcurrentgoal=rand(1:numberofstrategies); # real goal where the reward is 
 				currentxp=parameters[:Xplatform][indexcurrentgoal]; 
@@ -125,7 +125,7 @@ for indexrat=1:numberofrats
 				currentday=[];
 
 				for indextrial=1:numberoftrialstest # at every trial we define the new strategy that the rat will follow 
-					println("indextrial$(indextrial)")
+					#println("indextrial$(indextrial)")
 					let indexstrategy, estimated_actionmap, estimated_valuemap, k,t, timeout, prevdir,re,indexstart,currentposition,confidence=2, temperature=sigmoid(confidence)[1], historyX=Float64[],historyY=Float64[],real_TDerrors=Float64[],estimated_TDerrors=[],historyconfidence=[],historySPE=[],historytemperature=[]; # at start of a trial the agent is confident about the strategy to follow 
 
 						if  !(length(findall((estimated_errors).==minimum(estimated_errors)))==1)  # if there are more than one potential favourite strategies, we chose randomly among them 
@@ -239,7 +239,7 @@ for indexrat=1:numberofrats
 								estimated_errors=real_re.+parameters[:γ]*critic_next[:].-critic[:]; 
 
 								real_err=real_re+parameters[:γ]*C_next-C[1]; 
-								println(real_re)
+								#println(real_re)
 
 								# update confidence based on this strategy prediction error  : 
 								#global SPE=real_err-estimated_errors[indexstrategy];  # strategy prediction error 
@@ -316,62 +316,7 @@ plot(real_TDerrors)
 show()
 
 
-# plot all latencies :
-using PyPlot
-for indexday=1:numberofdaystest
-# Calculate the lower value for the error bar : 
-uppererror = [std([currentexperiment[indexrat][indexday][indextrial].latency for indexrat in 1:numberofrats]; corrected=false)./sqrt(numberofrats) for indextrial in 1:numberoftrialstest] ;
-lowererror = [std([currentexperiment[indexrat][indexday][indextrial].latency for indexrat in 1:numberofrats]; corrected=false)./sqrt(numberofrats) for indextrial in 1:numberoftrialstest] ;
-
-errs=[lowererror,uppererror];
-
-PyPlot.plot((indexday-1)*numberoftrialstest.+(1:numberoftrialstest), [mean([currentexperiment[indexrat][indexday][indextrial].latency for indexrat in 1:numberofrats]) for indextrial in 1:numberoftrialstest], marker="None",linestyle="-",color="darkgreen",label="Base Plot")
-PyPlot.errorbar((indexday-1)*numberoftrialstest.+(1:numberoftrialstest),[mean([currentexperiment[indexrat][indexday][indextrial].latency for indexrat in 1:numberofrats]) for indextrial in 1:numberoftrialstest],yerr=errs,fmt="o",color="k")
-
-rc("font", family="serif",size=16)
-title("One-shot learning in artificial watermaze")
-xlabel("Trials ", fontsize=18);
-ylabel("Time to the goal (s)", fontsize=18)
-end
-show()
 
 
-
-# plot every platform position 
-theta=0:pi/50:(2*pi+pi/50); # to plot circles 
-
-for indexstrategy=1:numberofstrategies
-	plot(parameters[:Xplatform][indexstrategy]).+parameters[:r]*cos.(theta),parameters[:Yplatform][indexstrategy]).+parameters[:r]*sin.(theta),color="darkred");
-
-end
-	plot(parameters[:R]*cos.(theta),parameters[:R]*sin.(theta),"darkgreen",lw=2)
-
-show()
-
-
-
-
-# plot means latencies
-using PyPlot
-
-# create mean latencies per rats : 
-Mean_Lat=[ [mean([currentexperiment[indexrat][indexday][indextrial].latency for indexday=1:numberofdaystest] ) for indextrial=1:numberoftrialstest ] for indexrat=1:numberofrats ];
-# Calculate the error bar : 
-uppererror = [std([Mean_Lat[indexrat][indextrial] for indexrat in 1:numberofrats]; corrected=false)./sqrt(numberofrats) for indextrial in 1:numberoftrialstest] ;
-lowererror = [std([Mean_Lat[indexrat][indextrial] for indexrat in 1:numberofrats]; corrected=false)./sqrt(numberofrats) for indextrial in 1:numberoftrialstest] ;
-errs=[lowererror,uppererror]; # gather 
-
-for indextrial=1:numberoftrialstest
-
-
-PyPlot.plot((indexday-1)*numberoftrialstest.+(1:numberoftrialstest), [mean([currentexperiment[indexrat][indexday][indextrial].latency for indexrat in 1:numberofrats]) for indextrial in 1:numberoftrialstest], marker="None",linestyle="-",color="darkgreen",label="Base Plot")
-PyPlot.errorbar((indexday-1)*numberoftrialstest.+(1:numberoftrialstest),[mean([currentexperiment[indexrat][indexday][indextrial].latency for indexrat in 1:numberofrats]) for indextrial in 1:numberoftrialstest],yerr=errs,fmt="o",color="k")
-
-rc("font", family="serif",size=16)
-title("One-shot learning in artificial watermaze")
-xlabel("Trials ", fontsize=18);
-ylabel("Time to the goal (s)", fontsize=18)
-end
-show()
 
 
