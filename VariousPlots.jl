@@ -1,11 +1,44 @@
 
-# plot means latencies
+
+using LinearAlgebra
+using Statistics
+using JLD2 
+using FileIO
 using PyPlot
+using PyCall
+@pyimport matplotlib.animation as anim
+# anim=pyimport("matplotlib.animation") # I thnk new way of doing it 
+using IJulia
+zoom= pyimport("mpl_toolkits.axes_grid1.inset_locator") # for embeddded plots 
+@pyimport matplotlib.projections as proj
+
+
+
+
+rats=load("Meta_newParam.jld2"); 
+parameters=rats["parameters"];
+meta_parameters=rats["meta_parameters"]
+features=rats["features"];
+data=rats["data"]; # Fields are  trajectory historySPE latency historyconfidence real_TDerrors estimated_TDerrors historytemperature real_platform indexstrategy 
+
+
+# 	
+# 	
+# 	`7MMM.     ,MMF'                                 `7MMF'            db      mm
+# 	  MMMb    dPMM                                     MM             ;MM:     MM
+# 	  M YM   ,M MM  .gP"Ya   ,6"Yb.  `7MMpMMMb.        MM            ,V^MM.  mmMMmm .gP"Ya `7MMpMMMb.  ,p6"bo `7M'   `MF'
+# 	  M  Mb  M' MM ,M'   Yb 8)   MM    MM    MM        MM           ,M  `MM    MM  ,M'   Yb  MM    MM 6M'  OO   VA   ,V
+# 	  M  YM.P'  MM 8M""""""  ,pm9MM    MM    MM        MM      ,    AbmmmqMA   MM  8M""""""  MM    MM 8M         VA ,V
+# 	  M  `YM'   MM YM.    , 8M   MM    MM    MM        MM     ,M   A'     VML  MM  YM.    ,  MM    MM YM.    ,    VVV
+# 	.JML. `'  .JMML.`Mbmmd' `Moo9^Yo..JMML  JMML.    .JMMmmmmMMM .AMA.   .AMMA.`Mbmo`Mbmmd'.JMML  JMML.YMbmd'     ,V
+# 	                                                                                                             ,V
+# 	                                                                                                          OOb"
+
 # create mean latencies per rats : 
-Mean_Lat=[ [mean([currentexperiment[indexrat][indexday][indextrial].latency for indexday=1:numberofdaystest] ) for indextrial=1:numberoftrialstest ] for indexrat=1:numberofrats ];
+Mean_Lat=[ [mean([data[indexrat][indexday][indextrial].latency for indexday=1:meta_parameters[:numberofdaystest] ]) for indextrial=1:meta_parameters[:numberoftrialstest ]] for indexrat=1:features[:numberofrats] ];
 # Calculate the error bar : 
-uppererror = [std([Mean_Lat[indexrat][indextrial] for indexrat in 1:numberofrats]; corrected=false)./sqrt(numberofrats) for indextrial in 1:numberoftrialstest] ;
-lowererror = [std([Mean_Lat[indexrat][indextrial] for indexrat in 1:numberofrats]; corrected=false)./sqrt(numberofrats) for indextrial in 1:numberoftrialstest] ;
+uppererror = [std([Mean_Lat[indexrat][indextrial] for indexrat in 1:features[:numberofrats]]; corrected=false)./sqrt(features[:numberofrats]) for indextrial in 1:meta_parameters[:numberoftrialstest ]] ;
+lowererror = [std([Mean_Lat[indexrat][indextrial] for indexrat in 1:features[:numberofrats]]; corrected=false)./sqrt(features[:numberofrats]) for indextrial in 1:meta_parameters[:numberoftrialstest ]] ;
 errs=[lowererror,uppererror]; # gather 
 
 
@@ -17,8 +50,8 @@ ax=gca()
 
 
 #for indextrial=1:numberoftrialstest
-PyPlot.plot((1:1:numberoftrialstest), [mean([Mean_Lat[indexrat][indextrial] for indexrat in 1:numberofrats]) for indextrial in 1:numberoftrialstest], marker="None",linestyle="-",color="darkgreen",label="Base Plot")
-PyPlot.errorbar((1:1:numberoftrialstest),[mean([Mean_Lat[indexrat][indextrial] for indexrat in 1:numberofrats]) for indextrial in 1:numberoftrialstest],yerr=errs,fmt="o",color="k")
+PyPlot.plot((1:1:meta_parameters[:numberoftrialstest ]), [mean([Mean_Lat[indexrat][indextrial] for indexrat in 1:features[:numberofrats]]) for indextrial in 1:meta_parameters[:numberoftrialstest ]], marker="None",linestyle="-",color="darkgreen",label="Base Plot")
+PyPlot.errorbar((1:1:meta_parameters[:numberoftrialstest ]),[mean([Mean_Lat[indexrat][indextrial] for indexrat in 1:features[:numberofrats]]) for indextrial in 1:meta_parameters[:numberoftrialstest ]],yerr=errs,fmt="o",color="k")
 
 mx = matplotlib.ticker.MultipleLocator(1) # Define interval of minor ticks
 ax.xaxis.set_major_locator(mx) # Set interval of minor ticks
@@ -61,10 +94,17 @@ show()
 
 
 
-
-
-# plot all latencies :
-using PyPlot
+# 	
+# 	                ,,    ,,                                                            ,,
+# 	      db      `7MM  `7MM      `7MMF'               mm                               db
+# 	     ;MM:       MM    MM        MM                 MM
+# 	    ,V^MM.      MM    MM        MM         ,6"Yb.mmMMmm .gP"Ya `7MMpMMMb.  ,p6"bo `7MM  .gP"Ya  ,pP"Ybd
+# 	   ,M  `MM      MM    MM        MM        8)   MM  MM  ,M'   Yb  MM    MM 6M'  OO   MM ,M'   Yb 8I   `"
+# 	   AbmmmqMA     MM    MM        MM      ,  ,pm9MM  MM  8M""""""  MM    MM 8M        MM 8M"""""" `YMMMa.
+# 	  A'     VML    MM    MM        MM     ,M 8M   MM  MM  YM.    ,  MM    MM YM.    ,  MM YM.    , L.   I8
+# 	.AMA.   .AMMA..JMML..JMML.    .JMMmmmmMMM `Moo9^Yo.`Mbmo`Mbmmd'.JMML  JMML.YMbmd' .JMML.`Mbmmd' M9mmmP'
+# 	
+# 	
 
 
 clf()
@@ -77,19 +117,19 @@ let fig,ax
 
 
 	global labels_code=[] # init labels 
-	for indexday=1:numberofdaystest
+	for indexday=1:meta_parameters[:numberofdaystest ]
 
 	# Calculate the lower value for the error bar : 
-	uppererror = [std([currentexperiment[indexrat][indexday][indextrial].latency for indexrat in 1:numberofrats]; corrected=false)./sqrt(numberofrats) for indextrial in 1:numberoftrialstest] ;
-	lowererror = [std([currentexperiment[indexrat][indexday][indextrial].latency for indexrat in 1:numberofrats]; corrected=false)./sqrt(numberofrats) for indextrial in 1:numberoftrialstest] ;
+	uppererror = [std([data[indexrat][indexday][indextrial].latency for indexrat in 1:features[:numberofrats]]; corrected=false)./sqrt(features[:numberofrats]) for indextrial in 1:meta_parameters[:numberoftrialstest]] ;
+	lowererror = [std([data[indexrat][indexday][indextrial].latency for indexrat in 1:features[:numberofrats]]; corrected=false)./sqrt(features[:numberofrats]) for indextrial in 1:meta_parameters[:numberoftrialstest]] ;
 
 	errs=[lowererror,uppererror];
 
-	PyPlot.plot((indexday-1)*numberoftrialstest.+(1:numberoftrialstest), [mean([currentexperiment[indexrat][indexday][indextrial].latency for indexrat in 1:numberofrats]) for indextrial in 1:numberoftrialstest], marker="None",linestyle="-",color="darkgreen",label="Base Plot")
-	PyPlot.errorbar((indexday-1)*numberoftrialstest.+(1:numberoftrialstest),[mean([currentexperiment[indexrat][indexday][indextrial].latency for indexrat in 1:numberofrats]) for indextrial in 1:numberoftrialstest],yerr=errs,fmt="o",color="k")
+	PyPlot.plot((indexday-1)*meta_parameters[:numberoftrialstest].+(1:meta_parameters[:numberoftrialstest]), [mean([data[indexrat][indexday][indextrial].latency for indexrat in 1:features[:numberofrats]]) for indextrial in 1:meta_parameters[:numberoftrialstest]], marker="None",linestyle="-",color="darkgreen",label="Base Plot")
+	PyPlot.errorbar((indexday-1)*meta_parameters[:numberoftrialstest].+(1:meta_parameters[:numberoftrialstest]),[mean([data[indexrat][indexday][indextrial].latency for indexrat in 1:features[:numberofrats]]) for indextrial in 1:meta_parameters[:numberoftrialstest]],yerr=errs,fmt="o",color="k")
 
 
-	global labels_code=vcat(labels_code,collect(1:1:numberoftrialstest))
+	global labels_code=vcat(labels_code,collect(1:1:meta_parameters[:numberoftrialstest]))
 	println(labels_code)
 	end
 	 
@@ -150,17 +190,250 @@ let fig,ax
 end # end let fig, ax
 
 
-
-
-
 # plot every platform position 
 theta=0:pi/50:(2*pi+pi/50); # to plot circles 
 
-for indexstrategy=1:numberofstrategies
+for indexstrategy=1:meta_parameters[:numberofstrategies]
 	plot(parameters[:Xplatform][indexstrategy]).+parameters[:r]*cos.(theta),parameters[:Yplatform][indexstrategy]).+parameters[:r]*sin.(theta),color="darkred");
 
 end
 	plot(parameters[:R]*cos.(theta),parameters[:R]*sin.(theta),"darkgreen",lw=2)
 
 show()
+
+
+
+# 	
+# 	
+# 	 .M"""bgd `7MM"""Mq.`7MM"""YMM
+# 	,MI    "Y   MM   `MM. MM    `7
+# 	`MMb.       MM   ,M9  MM   d
+# 	  `YMMNq.   MMmmdM9   MMmmMM
+# 	.     `MM   MM        MM   Y  ,
+# 	Mb     dM   MM        MM     ,M
+# 	P"Ybmmd"  .JMML.    .JMMmmmmMMM
+# 	
+# 	
+
+indexrat=1;
+indexday=3;
+indextrial=1;
+angles=[2*pi*l/parameters[:NA] for l=1:parameters[:NA]];
+
+
+fig = plt.figure("MyFigure")
+
+ax2=gca()
+
+plot(collect(1:1:size(data[indexrat][indexday][indextrial].trajectory,1)),[data[indexrat][indexday][indextrial].historySPE[j][data[indexrat][indexday][indextrial].indexstrategy] for j=1:size(data[indexrat][indexday][indextrial].trajectory,1)],"seagreen")
+
+# plot(collect(1:1:size(data[indexrat][indexday][indextrial].trajectory,1)),data[indexrat][indexday][indextrial].historySPE,"seagreen")
+ax2[:set_xlim]([0,size(data[indexrat][indexday][indextrial].trajectory,1)])
+# ax2.set_xticklabels(labels) # labels of the ticks 
+majors2 = [floor(size(data[indexrat][indexday][indextrial].trajectory,1)/6)*l for l=0:floor(size(data[indexrat][indexday][indextrial].trajectory,1)/floor(size(data[indexrat][indexday][indextrial].trajectory,1)/6))]; # x locations of the ticks, we want 6 tickes max to look nice on the plot 
+ax2.xaxis.set_major_locator(matplotlib.ticker.FixedLocator(majors2)) 
+#setp(ax2.get_yticklabels(),visible=false)
+ax2.spines["top"].set_color("none")
+ax2.spines["right"].set_color("none")
+ax2.spines["bottom"].set_visible("False")
+ax2.spines["left"].set_visible("False")
+show()
+
+
+
+# 	
+# 	
+# 	MMP""MM""YMM                                                         mm
+# 	P'   MM   `7                                                         MM
+# 	     MM  .gP"Ya `7MMpMMMb.pMMMb. `7MMpdMAo.  .gP"Ya `7Mb,od8 ,6"Yb.mmMMmm `7MM  `7MM  `7Mb,od8 .gP"Ya
+# 	     MM ,M'   Yb  MM    MM    MM   MM   `Wb ,M'   Yb  MM' "'8)   MM  MM     MM    MM    MM' "',M'   Yb
+# 	     MM 8M""""""  MM    MM    MM   MM    M8 8M""""""  MM     ,pm9MM  MM     MM    MM    MM    8M""""""
+# 	     MM YM.    ,  MM    MM    MM   MM   ,AP YM.    ,  MM    8M   MM  MM     MM    MM    MM    YM.    ,
+# 	   .JMML.`Mbmmd'.JMML  JMML  JMML. MMbmmd'   `Mbmmd'.JMML.  `Moo9^Yo.`Mbmo  `Mbod"YML..JMML.   `Mbmmd'
+# 	                                   MM
+# 	                                 .JMML.
+
+
+indexrat=1;
+indexday=3;
+indextrial=1;
+angles=[2*pi*l/parameters[:NA] for l=1:parameters[:NA]];
+
+
+fig = plt.figure("MyFigure")
+
+ax2=gca()
+
+plot(collect(1:1:size(data[indexrat][indexday][indextrial].trajectory,1)),data[indexrat][indexday][indextrial].historytemperature,"seagreen")
+ax2[:set_xlim]([0,size(data[indexrat][indexday][indextrial].trajectory,1)])
+# ax2.set_xticklabels(labels) # labels of the ticks 
+majors2 = [floor(size(data[indexrat][indexday][indextrial].trajectory,1)/6)*l for l=0:floor(size(data[indexrat][indexday][indextrial].trajectory,1)/floor(size(data[indexrat][indexday][indextrial].trajectory,1)/6))]; # x locations of the ticks, we want 6 tickes max to look nice on the plot 
+ax2.xaxis.set_major_locator(matplotlib.ticker.FixedLocator(majors2)) 
+#setp(ax2.get_yticklabels(),visible=false)
+ax2.spines["top"].set_color("none")
+ax2.spines["right"].set_color("none")
+ax2.spines["bottom"].set_visible("False")
+ax2.spines["left"].set_visible("False")
+
+show()
+
+
+
+# 	
+# 	                                   ,...,,        ,,
+# 	  .g8"""bgd                      .d' ""db      `7MM
+# 	.dP'     `M                      dM`             MM
+# 	dM'       ` ,pW"Wq.`7MMpMMMb.   mMMmm`7MM   ,M""bMM  .gP"Ya `7MMpMMMb.  ,p6"bo   .gP"Ya
+# 	MM         6W'   `Wb MM    MM    MM    MM ,AP    MM ,M'   Yb  MM    MM 6M'  OO  ,M'   Yb
+# 	MM.        8M     M8 MM    MM    MM    MM 8MI    MM 8M""""""  MM    MM 8M       8M""""""
+# 	`Mb.     ,'YA.   ,A9 MM    MM    MM    MM `Mb    MM YM.    ,  MM    MM YM.    , YM.    ,
+# 	  `"bmmmd'  `Ybmd9'.JMML  JMML..JMML..JMML.`Wbmd"MML.`Mbmmd'.JMML  JMML.YMbmd'   `Mbmmd'
+# 	
+# 	
+
+
+
+indexrat=1;
+indexday=3;
+indextrial=1;
+angles=[2*pi*l/parameters[:NA] for l=1:parameters[:NA]];
+
+
+fig = plt.figure("MyFigure")
+
+ax2=gca()
+
+plot(collect(1:1:size(data[indexrat][indexday][indextrial].trajectory,1)),data[indexrat][indexday][indextrial].historyconfidence,"seagreen")
+ax2[:set_xlim]([0,size(data[indexrat][indexday][indextrial].trajectory,1)])
+# ax2.set_xticklabels(labels) # labels of the ticks 
+majors2 = [floor(size(data[indexrat][indexday][indextrial].trajectory,1)/6)*l for l=0:floor(size(data[indexrat][indexday][indextrial].trajectory,1)/floor(size(data[indexrat][indexday][indextrial].trajectory,1)/6))]; # x locations of the ticks, we want 6 tickes max to look nice on the plot 
+ax2.xaxis.set_major_locator(matplotlib.ticker.FixedLocator(majors2)) 
+#setp(ax2.get_yticklabels(),visible=false)
+ax2.spines["top"].set_color("none")
+ax2.spines["right"].set_color("none")
+ax2.spines["bottom"].set_visible("False")
+ax2.spines["left"].set_visible("False")
+show()
+
+
+# 	
+# 	                          ,,
+# 	MMP""MM""YMM              db                    mm
+# 	P'   MM   `7                                    MM
+# 	     MM  `7Mb,od8 ,6"Yb.`7MM  .gP"Ya   ,p6"bo mmMMmm ,pW"Wq.`7Mb,od8 `7M'   `MF'
+# 	     MM    MM' "'8)   MM  MM ,M'   Yb 6M'  OO   MM  6W'   `Wb MM' "'   VA   ,V
+# 	     MM    MM     ,pm9MM  MM 8M"""""" 8M        MM  8M     M8 MM        VA ,V
+# 	     MM    MM    8M   MM  MM YM.    , YM.    ,  MM  YA.   ,A9 MM         VVV
+# 	   .JMML..JMML.  `Moo9^Yo.MM  `Mbmmd'  YMbmd'   `Mbmo`Ybmd9'.JMML.       ,V
+# 	                       QO MP                                            ,V
+# 	                       `bmP                                          OOb"
+
+
+indexrat=9;
+indexday=1;
+indextrial=1;
+
+
+argument=0:pi/50:2pi+pi/50;
+xplat=parameters[:r]*cos.(argument);
+yplat=parameters[:r]*sin.(argument);
+xmaze=parameters[:R]*cos.(argument);
+ymaze=parameters[:R]*sin.(argument);
+
+
+fig = plt.figure("MyFigure")
+
+ax=gca()
+ax[:set_ylim]([-101,101])
+ax[:set_xlim]([-101,101])
+xlabel("X")
+ylabel("Y")
+plot(parameters[:Xplatform][data[indexrat][indexday][indextrial].indexstrategy].+xplat,parameters[:Yplatform][data[indexrat][indexday][indextrial].indexstrategy] .+ yplat,color="slateblue",lw=2)
+plot(data[indexrat][indexday][indextrial].real_platform[1].+xplat,data[indexrat][indexday][indextrial].real_platform[2] .+ yplat,color="darkgoldenrod",lw=2)
+plot(xmaze,ymaze,color="darkgrey",lw=1)
+plot(data[indexrat][indexday][indextrial].trajectory[:,1],data[indexrat][indexday][indextrial].trajectory[:,2],color="darkslategray", lw=2)
+ax.set_axis_off()
+
+show()
+
+
+
+
+
+
+
+# 	
+# 	                                                                                              ,,                                         ,...
+# 	 .M"""bgd `7MM"""Mq.`7MM"""YMM         MMP""MM""YMM `7MM"""Mq.                              `7MM        .g8"""bgd                      .d' ""
+# 	,MI    "Y   MM   `MM. MM    `7         P'   MM   `7   MM   `MM.                               MM      .dP'     `M                      dM`
+# 	`MMb.       MM   ,M9  MM   d                MM        MM   ,M9      ,6"Yb.  `7MMpMMMb.   ,M""bMM      dM'       ` ,pW"Wq.`7MMpMMMb.   mMMmm
+# 	  `YMMNq.   MMmmdM9   MMmmMM                MM        MMmmdM9      8)   MM    MM    MM ,AP    MM      MM         6W'   `Wb MM    MM    MM
+# 	.     `MM   MM        MM   Y  ,             MM        MM            ,pm9MM    MM    MM 8MI    MM      MM.        8M     M8 MM    MM    MM
+# 	Mb     dM   MM        MM     ,M ,,          MM        MM           8M   MM    MM    MM `Mb    MM      `Mb.     ,'YA.   ,A9 MM    MM    MM
+# 	P"Ybmmd"  .JMML.    .JMMmmmmMMM dg        .JMML.    .JMML.         `Moo9^Yo..JMML  JMML.`Wbmd"MML.      `"bmmmd'  `Ybmd9'.JMML  JMML..JMML.
+# 	                                ,j
+# 	                               ,'
+
+indexrat=1;
+indexday=3;
+indextrial=1;
+angles=[2*pi*l/parameters[:NA] for l=1:parameters[:NA]];
+
+
+clf()
+
+fig = plt.figure("MyFigure")
+
+
+ax3=subplot(3,1,1)
+
+plot(collect(1:1:size(data[indexrat][indexday][indextrial].trajectory,1)),[data[indexrat][indexday][indextrial].historySPE[j][data[indexrat][indexday][indextrial].indexstrategy] for j=1:size(data[indexrat][indexday][indextrial].trajectory,1)],"seagreen")
+
+# plot(collect(1:1:size(data[indexrat][indexday][indextrial].trajectory,1)),data[indexrat][indexday][indextrial].historySPE,"seagreen")
+ax3[:set_xlim]([0,size(data[indexrat][indexday][indextrial].trajectory,1)])
+# ax2.set_xticklabels(labels) # labels of the ticks 
+majors2 = [floor(size(data[indexrat][indexday][indextrial].trajectory,1)/6)*l for l=0:floor(size(data[indexrat][indexday][indextrial].trajectory,1)/floor(size(data[indexrat][indexday][indextrial].trajectory,1)/6))]; # x locations of the ticks, we want 6 tickes max to look nice on the plot 
+ax3.xaxis.set_major_locator(matplotlib.ticker.FixedLocator(majors2)) 
+#setp(ax2.get_yticklabels(),visible=false)
+ax3.spines["top"].set_color("none")
+ax3.spines["right"].set_color("none")
+ax3.spines["bottom"].set_visible("False")
+ax3.spines["left"].set_visible("False")
+
+
+ax2=subplot(3,1,2)
+
+plot(collect(1:1:size(data[indexrat][indexday][indextrial].trajectory,1)),data[indexrat][indexday][indextrial].historyconfidence,"seagreen")
+ax2[:set_xlim]([0,size(data[indexrat][indexday][indextrial].trajectory,1)])
+# ax2.set_xticklabels(labels) # labels of the ticks 
+majors2 = [floor(size(data[indexrat][indexday][indextrial].trajectory,1)/6)*l for l=0:floor(size(data[indexrat][indexday][indextrial].trajectory,1)/floor(size(data[indexrat][indexday][indextrial].trajectory,1)/6))]; # x locations of the ticks, we want 6 tickes max to look nice on the plot 
+ax2.xaxis.set_major_locator(matplotlib.ticker.FixedLocator(majors2)) 
+#setp(ax2.get_yticklabels(),visible=false)
+ax2.spines["top"].set_color("none")
+ax2.spines["right"].set_color("none")
+ax2.spines["bottom"].set_visible("False")
+ax2.spines["left"].set_visible("False")
+
+
+
+ax=subplot(3,1,3)
+
+plot(collect(1:1:size(data[indexrat][indexday][indextrial].trajectory,1)),data[indexrat][indexday][indextrial].historytemperature,"seagreen")
+ax[:set_xlim]([0,size(data[indexrat][indexday][indextrial].trajectory,1)])
+# ax2.set_xticklabels(labels) # labels of the ticks 
+majors2 = [floor(size(data[indexrat][indexday][indextrial].trajectory,1)/6)*l for l=0:floor(size(data[indexrat][indexday][indextrial].trajectory,1)/floor(size(data[indexrat][indexday][indextrial].trajectory,1)/6))]; # x locations of the ticks, we want 6 tickes max to look nice on the plot 
+ax.xaxis.set_major_locator(matplotlib.ticker.FixedLocator(majors2)) 
+#setp(ax2.get_yticklabels(),visible=false)
+ax.spines["top"].set_color("none")
+ax.spines["right"].set_color("none")
+ax.spines["bottom"].set_visible("False")
+ax.spines["left"].set_visible("False")
+
+show()
+
+
+
+
+
+
 

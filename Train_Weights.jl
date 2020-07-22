@@ -115,7 +115,7 @@ Ystart=[0,0.95,0,-0.95].*R;
 global numberofdays, numberoftrials, numberofrats
 numberofdays=1;
 numberofrats=20;
-numberoftrials=20;
+numberoftrials=40;
 
 global times
 times=collect(0:dt:T+dt); # time vector 
@@ -149,7 +149,7 @@ featuresexperiment=Dict(:numberofrats=>numberofrats, :numberofdays=>numberofdays
 
 NameOfFile="LearnWeights.jld2";
 
-
+ 
 
 #########################################################################
 #############          LOOP       ###############  ######################
