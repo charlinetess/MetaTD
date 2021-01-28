@@ -309,11 +309,11 @@ global ax=fig3[:add_subplot](get(gs,(pycall(pybuiltin("slice"), PyObject, 1,3),p
 
 ax[:set_ylim]([-101,101])
 ax[:set_xlim]([-101,101])
-global line2=ax[:plot]([],[],color="darkgrey",lw=1)[1]
-global line3=ax[:plot]([],[],color="darkslategray", lw=2)[1]
-global line1=ax[:plot]([],[],color="teal","*", lw=5)[1] # scatter(X,Y,color="teal", lw=4)
-global line4=ax[:plot]([],[],color="slateblue",lw=2)[1]
-global line5=ax[:plot]([],[],color="darkgoldenrod",lw=2)[1]
+global line2=ax[:plot]([],[],color="darkgrey",lw=1)[1] # goal of current strategy 
+global line3=ax[:plot]([],[],color="darkslategray", lw=2)[1] # maze boundaries 
+global line1=ax[:plot]([],[],color="teal","*", lw=5)[1] # agent # scatter(X,Y,color="teal", lw=4)
+global line4=ax[:plot]([],[],color="slateblue",lw=2)[1] # trajectory 
+global line5=ax[:plot]([],[],color="darkgoldenrod",lw=2)[1] # current goal 
 #plot(parameters[:Xplatform][data[indexrat][indexday][indextrial].real_platform[1]].+xplat,parameters[:Yplatform][data[indexrat][indexday][indextrial].real_platform[2]] .+ yplat,color="darkgoldenrod",lw=2)
 
 ax.set_axis_off()
@@ -322,8 +322,8 @@ ax.set_axis_off()
 global ax2=fig3[:add_subplot](get(gs,(0,pycall(pybuiltin("slice"), PyObject, 0,2))))
 #subplot(get(gs,(0,pycall(pybuiltin("slice"), PyObject, 0,4))))
 
-global line21=ax2[:plot]([],[],color="seagreen",lw=4)[1]
-global line22=ax2[:plot]([],[],color="lightseagreen",lw=3)[1]
+global line21=ax2[:plot]([],[],color="seagreen",lw=4)[1] # confidence
+global line22=ax2[:plot]([],[],color="lightseagreen",lw=3)[1] # markers 
 
 ax2[:set_xlim]([0,size(data[indexrat][indexday][indextrial].trajectory,1)+size(data[indexrat][indexday][indextrial2].trajectory,1)])
 ax2[:set_ylim]([minimum(vcat(data[indexrat][indexday][indextrial].historyconfidence,data[indexrat][indexday][indextrial2].historyconfidence)),maximum(vcat(data[indexrat][indexday][indextrial].historyconfidence,data[indexrat][indexday][indextrial2].historyconfidence))])

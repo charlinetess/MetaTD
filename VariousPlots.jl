@@ -1,4 +1,5 @@
 
+using LaTeXStrings
 
 using LinearAlgebra
 using Statistics
@@ -15,11 +16,15 @@ zoom= pyimport("mpl_toolkits.axes_grid1.inset_locator") # for embeddded plots
 
 
 
-rats=load("Meta_newParam.jld2"); 
+rats=load("Meta_newParameter.jld2"); 
 parameters=rats["parameters"];
 meta_parameters=rats["meta_parameters"]
 features=rats["features"];
 data=rats["data"]; # Fields are  trajectory historySPE latency historyconfidence real_TDerrors estimated_TDerrors historytemperature real_platform indexstrategy 
+indexrat=8;
+indexday=1;
+angles=[2*pi*l/parameters[:NA] for l=1:parameters[:NA]];
+
 
 
 # 	
@@ -292,10 +297,10 @@ show()
 # 	
 
 
-
-indexrat=1;
-indexday=3;
+indexrat=8;
+indexday=1;
 indextrial=1;
+
 angles=[2*pi*l/parameters[:NA] for l=1:parameters[:NA]];
 
 
@@ -374,7 +379,7 @@ show()
 # 	                                ,j
 # 	                               ,'
 
-indexrat=1;
+indexrat=16;
 indexday=3;
 indextrial=1;
 angles=[2*pi*l/parameters[:NA] for l=1:parameters[:NA]];
@@ -431,9 +436,97 @@ ax.spines["left"].set_visible("False")
 
 show()
 
+# 	
+# 	                               ,,             ,,
+# 	               mm              db           `7MM
+# 	               MM                             MM
+# 	 pd*"*b.     mmMMmm `7Mb,od8 `7MM   ,6"Yb.    MM  ,pP"Ybd
+# 	(O)   j8       MM     MM' "'   MM  8)   MM    MM  8I   `"
+# 	    ,;j9       MM     MM       MM   ,pm9MM    MM  `YMMMa.
+# 	 ,-='          MM     MM       MM  8M   MM    MM  L.   I8
+# 	Ammmmmmm       `Mbmo.JMML.   .JMML.`Moo9^Yo..JMML.M9mmmP'
+# 	
+# 	
+
+fig=figure()
+ax2=fig.gca()
+#subplot(get(gs,(0,pycall(pybuiltin("slice"), PyObject, 0,4))))
+
+x=0:1:(size(vcat(data[indexrat][indexday][1].historyconfidence[:],data[indexrat][indexday][2].historyconfidence[:]),1)-1)# gather the whole length of trial 1 and trial 2
+
+
+plot(x,vcat(data[indexrat][indexday][1].historyconfidence[:],data[indexrat][indexday][2].historyconfidence[:]),color="seagreen",lw=4)  # confidence
+
+ax2[:set_xlim]([-meta_parameters[:dt],length(x)+2*meta_parameters[:dt]])
+
+ax2[:set_ylim]([minimum(vcat(data[indexrat][indexday][1].historyconfidence,data[indexrat][indexday][2].historyconfidence))-minimum(vcat(data[indexrat][indexday][1].historyconfidence,data[indexrat][indexday][2].historyconfidence))/100,maximum(vcat(data[indexrat][indexday][1].historyconfidence,data[indexrat][indexday][2].historyconfidence))+maximum(vcat(data[indexrat][indexday][1].historyconfidence,data[indexrat][indexday][2].historyconfidence))/10])
+
+ymax=ax2.get_ylim()
+# find minimum of SPE: 
+x1=findall(x->x==minimum(data[indexrat][indexday][1].historyconfidence[:]),data[indexrat][indexday][1].historyconfidence[:])
+# plot([x1,x1],[ymax[1],ymax[1]+1],color="lightseagreen",lw=3) # markers
+
+x2=findall(x->x==maximum(vcat(data[indexrat][indexday][1].historyconfidence,data[indexrat][indexday][2].historyconfidence)),vcat(data[indexrat][indexday][1].historyconfidence,data[indexrat][indexday][2].historyconfidence))
+# plot([x2,x2],[ymax[1],ymax[1]+1],color="lightseagreen",lw=3) # markers 
+
+x3=x2.-60; # just a point in the middle 
+# plot([x3,x3],[ymax[1],ymax[1]+1],color="lightseagreen",lw=3) # markers 
+
+x4=x[end];
+# plot([x4,x4],[ymax[1],ymax[1]+1],color="lightseagreen",lw=3) 
+
+
+majors21 = [ k*200 for k=0:floor((size(data[indexrat][indexday][1].trajectory,1))/200)]
+
+majors22 = [ k*200 for k=0:floor((size(data[indexrat][indexday][2].trajectory,1))/200)]
+# vcat(0:meta_parameters[:dt]:(data[indexrat][indexday][1].latency-meta_parameters[:dt]),0:meta_parameters[:dt]:(data[indexrat][indexday][2].latency-meta_parameters[:dt])) 
+
+# floor((size(data[indexrat][indexday][1].trajectory,1)+size(data[indexrat][indexday][2].trajectory,1))/6)*l for l=0:floor( ( ( size(data[indexrat][indexday][1].trajectory,1) + size(data[indexrat][indexday][2].trajectory,1) ) ) /floor((size(data[indexrat][indexday][1].trajectory,1)+size(data[indexrat][indexday][2].trajectory,1))/6)) ]; # x locations of the ticks, we want 6 tickes max to look nice on the plot 
+majors2=vcat(sort(vcat(majors21,x1,x2,x3)),sort(vcat(majors22,(x4.-x2)))) # incorporate new points , witht he real timing of x4
 
 
 
+ax2.spines["top"].set_color("none")
+ax2.spines["right"].set_color("none")
+ax2.spines["bottom"].set_visible("False")
+ax2.spines["left"].set_visible("False")
+ax2.xaxis.set_major_locator(matplotlib.ticker.FixedLocator(majors2)) 
 
+# ax.tick_params(which=, length=4, color='r')
 
+# labels = [item.get_text() for item in ax2.get_xticklabels()]
+# define labels  
+# majors2labels=vcat([ k*200 for k=0:floor((size(data[indexrat][indexday][1].trajectory,1))/200)],[ k*200 for k=0:floor((size(data[indexrat][indexday][2].trajectory,1))/200)])
+# majors2labels=vcat([ k*200 for k=0:floor((size(data[indexrat][indexday][1].trajectory,1))/200)],[ k*200 for k=0:floor((size(data[indexrat][indexday][2].trajectory,1))/200)])
 
+labels=[string(majors2[k]) for k=1:length(majors2) ]; 
+text(x1, ymax[1]-ymax[1]/10, "c",size=20)
+text(x2, ymax[1]-ymax[1]/10, "e",size=20)
+text(x3, ymax[1]-ymax[1]/10, "d",size=20)
+text(x4, ymax[1]-ymax[1]/10, "f",size=20)
+
+# labels[1]="0" # for some reason the first label is -200
+labels[findall(x->x==x1[1],majors2)[1]] = ""
+labels[findall(x->x==x2[1],majors2)[1]] = ""
+labels[findall(x->x==x3[1],majors2)[1]] = ""
+labels[findall(x->x==(x4.-x2)[1],majors2)[1]] = ""
+
+# labels[end]
+
+ylabel(latexstring("\$\\sigma\$"),size=18)
+xlabel("time since trial onset (ms)",size=18)
+
+# # labels[1]="" # no space for both 
+# labels[end-1]=""
+# labels[9]=""
+ax2.set_xticklabels(labels)
+
+show()
+
+# confidence + vertical bars 
+# majors2 = [ floor((size(data[indexrat][indexday][indextrial].trajectory,1)+size(data[indexrat][indexday][indextrial2].trajectory,1))/6)*l for l=0:floor( ( ( size(data[indexrat][indexday][indextrial].trajectory,1) + size(data[indexrat][indexday][indextrial2].trajectory,1) ) ) /floor((size(data[indexrat][indexday][indextrial].trajectory,1)+size(data[indexrat][indexday][indextrial2].trajectory,1))/6)) ]; # x locations of the ticks, we want 6 tickes max to look nice on the plot 
+# ax2.xaxis.set_major_locator(matplotlib.ticker.FixedLocator(majors2)) 
+# ax2.spines["top"].set_color("none")
+# ax2.spines["right"].set_color("none")
+# ax2.spines["bottom"].set_visible("False")
+# ax2.spines["left"].set_visible("False")
