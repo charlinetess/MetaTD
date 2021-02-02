@@ -21,8 +21,8 @@ parameters=rats["parameters"];
 meta_parameters=rats["meta_parameters"]
 features=rats["features"];
 data=rats["data"]; # Fields are  trajectory historySPE latency historyconfidence real_TDerrors estimated_TDerrors historytemperature real_platform indexstrategy 
-indexrat=8;
-indexday=1;
+indexrat=16;
+indexday=4;
 angles=[2*pi*l/parameters[:NA] for l=1:parameters[:NA]];
 
 
@@ -448,18 +448,30 @@ show()
 # 	
 # 	
 
-fig=figure()
+# 	
+# 	                                   ,...
+# 	  .g8"""bgd                      .d' ""
+# 	.dP'     `M                      dM`
+# 	dM'       ` ,pW"Wq.`7MMpMMMb.   mMMmm
+# 	MM         6W'   `Wb MM    MM    MM
+# 	MM.        8M     M8 MM    MM    MM
+# 	`Mb.     ,'YA.   ,A9 MM    MM    MM
+# 	  `"bmmmd'  `Ybmd9'.JMML  JMML..JMML.
+# 	
+# 	
+
+fig=figure(figsize=(50,5))
 ax2=fig.gca()
 #subplot(get(gs,(0,pycall(pybuiltin("slice"), PyObject, 0,4))))
 
 x=0:1:(size(vcat(data[indexrat][indexday][1].historyconfidence[:],data[indexrat][indexday][2].historyconfidence[:]),1)-1)# gather the whole length of trial 1 and trial 2
 
 
-plot(x,vcat(data[indexrat][indexday][1].historyconfidence[:],data[indexrat][indexday][2].historyconfidence[:]),color="seagreen",lw=4)  # confidence
+plot(x,vcat(data[indexrat][indexday][1].historyconfidence[:],data[indexrat][indexday][2].historyconfidence[:]),color="seagreen",lw=2)  # confidence
 
 ax2[:set_xlim]([-meta_parameters[:dt],length(x)+2*meta_parameters[:dt]])
 
-ax2[:set_ylim]([minimum(vcat(data[indexrat][indexday][1].historyconfidence,data[indexrat][indexday][2].historyconfidence))-minimum(vcat(data[indexrat][indexday][1].historyconfidence,data[indexrat][indexday][2].historyconfidence))/100,maximum(vcat(data[indexrat][indexday][1].historyconfidence,data[indexrat][indexday][2].historyconfidence))+maximum(vcat(data[indexrat][indexday][1].historyconfidence,data[indexrat][indexday][2].historyconfidence))/10])
+ax2[:set_ylim]([minimum(vcat(data[indexrat][indexday][1].historyconfidence,data[indexrat][indexday][2].historyconfidence))+minimum(vcat(data[indexrat][indexday][1].historyconfidence,data[indexrat][indexday][2].historyconfidence))/10,maximum(vcat(data[indexrat][indexday][1].historyconfidence,data[indexrat][indexday][2].historyconfidence))+maximum(vcat(data[indexrat][indexday][1].historyconfidence,data[indexrat][indexday][2].historyconfidence))/10])
 
 ymax=ax2.get_ylim()
 # find minimum of SPE: 
@@ -476,7 +488,7 @@ x4=x[end];
 # plot([x4,x4],[ymax[1],ymax[1]+1],color="lightseagreen",lw=3) 
 
 
-majors21 = [ k*200 for k=0:floor((size(data[indexrat][indexday][1].trajectory,1))/200)]
+majors21 = [ k*200 for k=0:(floor((size(data[indexrat][indexday][1].trajectory,1))/200))]
 
 majors22 = [ k*200 for k=0:floor((size(data[indexrat][indexday][2].trajectory,1))/200)]
 # vcat(0:meta_parameters[:dt]:(data[indexrat][indexday][1].latency-meta_parameters[:dt]),0:meta_parameters[:dt]:(data[indexrat][indexday][2].latency-meta_parameters[:dt])) 
@@ -489,8 +501,9 @@ majors2=vcat(sort(vcat(majors21,x1,x2,x3)),sort(vcat(majors22,(x4.-x2)))) # inco
 ax2.spines["top"].set_color("none")
 ax2.spines["right"].set_color("none")
 ax2.spines["bottom"].set_visible("False")
-ax2.spines["left"].set_visible("False")
+ax2.spines["left"].set_visible("False") 
 ax2.xaxis.set_major_locator(matplotlib.ticker.FixedLocator(majors2)) 
+
 
 # ax.tick_params(which=, length=4, color='r')
 
@@ -500,10 +513,17 @@ ax2.xaxis.set_major_locator(matplotlib.ticker.FixedLocator(majors2))
 # majors2labels=vcat([ k*200 for k=0:floor((size(data[indexrat][indexday][1].trajectory,1))/200)],[ k*200 for k=0:floor((size(data[indexrat][indexday][2].trajectory,1))/200)])
 
 labels=[string(majors2[k]) for k=1:length(majors2) ]; 
-text(x1, ymax[1]-ymax[1]/10, "c",size=20)
-text(x2, ymax[1]-ymax[1]/10, "e",size=20)
-text(x3, ymax[1]-ymax[1]/10, "d",size=20)
-text(x4, ymax[1]-ymax[1]/10, "f",size=20)
+# text(x1, ymax[1]-ymax[1]/5, "b",size=20)
+# text(x2, ymax[1]-ymax[1]/5, "d",size=20)
+# text(x3, ymax[1]-ymax[1]/5, "c",size=20)
+# text(x4, ymax[1]-ymax[1]/5, "e",size=20)
+
+ax2.annotate("e", xy=[x4, ymax[1]-ymax[1]/10], xytext=[x3.-50, (ymax[2]+ymax[1])/2],arrowprops=Dict("facecolor"=>"black","shrink"=>0.05,"width"=>1,"headwidth"=>4),size=18)#,"shrink"=>0.05])
+
+ax2.annotate("b", xy=[x1, ymax[1]-ymax[1]/10], xytext=[x1.+50, (ymax[2]+ymax[1])/2],arrowprops=Dict("facecolor"=>"black","shrink"=>0.05,"width"=>1,"headwidth"=>4),size=18)#,"shrink"=>0.05])
+ax2.annotate("d", xy=[x2, ymax[1]-ymax[1]/10], xytext=[(x2.-(x4.-x3).-50), (ymax[2]+ymax[1])/2],arrowprops=Dict("facecolor"=>"black","shrink"=>0.05,"width"=>1,"headwidth"=>4),size=18)#,"shrink"=>0.05])
+ax2.annotate("c", xy=[x3, ymax[1]-ymax[1]/10], xytext=[(x3.-(x4.-x3).-50), (ymax[2]+ymax[1])/2],arrowprops=Dict("facecolor"=>"black","shrink"=>0.05,"width"=>1,"headwidth"=>4),size=18)#,"shrink"=>0.05])
+
 
 # labels[1]="0" # for some reason the first label is -200
 labels[findall(x->x==x1[1],majors2)[1]] = ""
@@ -513,20 +533,179 @@ labels[findall(x->x==(x4.-x2)[1],majors2)[1]] = ""
 
 # labels[end]
 
-ylabel(latexstring("\$\\sigma\$"),size=18)
+ylabel(latexstring("\$\\sigma\$"),size=18,color="seagreen")
 xlabel("time since trial onset (ms)",size=18)
 
 # # labels[1]="" # no space for both 
 # labels[end-1]=""
 # labels[9]=""
 ax2.set_xticklabels(labels)
+ax2.tick_params(axis="y", labelcolor="seagreen")
+
+ax3=ax2.twinx()
+ax3.set_ylabel(latexstring("\$\\beta\$"),size=18,color="darkslateblue")
+
+ax3.plot(x,vcat(data[indexrat][indexday][1].historytemperature[:],data[indexrat][indexday][2].historytemperature[:]),color="darkslateblue",lw=2)  # confidence
+ax3[:set_ylim]([minimum(vcat(data[indexrat][indexday][1].historytemperature,data[indexrat][indexday][2].historytemperature))-minimum(vcat(data[indexrat][indexday][1].historytemperature,data[indexrat][indexday][2].historytemperature))/10,maximum(vcat(data[indexrat][indexday][1].historytemperature,data[indexrat][indexday][2].historytemperature))+maximum(vcat(data[indexrat][indexday][1].historytemperature,data[indexrat][indexday][2].historytemperature))/10])
+
+ax3.spines["top"].set_color("none")
+ax3.spines["left"].set_color("none")
+ax3.spines["bottom"].set_visible("False")
+ax3.spines["right"].set_visible("False") 
+ax3.tick_params(axis="y", labelcolor="darkslateblue")
+
 
 show()
 
-# confidence + vertical bars 
-# majors2 = [ floor((size(data[indexrat][indexday][indextrial].trajectory,1)+size(data[indexrat][indexday][indextrial2].trajectory,1))/6)*l for l=0:floor( ( ( size(data[indexrat][indexday][indextrial].trajectory,1) + size(data[indexrat][indexday][indextrial2].trajectory,1) ) ) /floor((size(data[indexrat][indexday][indextrial].trajectory,1)+size(data[indexrat][indexday][indextrial2].trajectory,1))/6)) ]; # x locations of the ticks, we want 6 tickes max to look nice on the plot 
-# ax2.xaxis.set_major_locator(matplotlib.ticker.FixedLocator(majors2)) 
-# ax2.spines["top"].set_color("none")
-# ax2.spines["right"].set_color("none")
-# ax2.spines["bottom"].set_visible("False")
-# ax2.spines["left"].set_visible("False")
+# 	
+# 	                                  ,,
+# 	MMP""MM""YMM `7MM"""Mq.           db
+# 	P'   MM   `7   MM   `MM.              __,
+# 	     MM        MM   ,M9   ,6"Yb.`7MM `7MM
+# 	     MM        MMmmdM9   8)   MM  MM   MM
+# 	     MM        MM  YM.    ,pm9MM  MM   MM
+# 	     MM        MM   `Mb. 8M   MM  MM   MM
+# 	   .JMML.    .JMML. .JMM.`Moo9^Yo.MM .JMML.
+# 	                               QO MP
+# 	                               `bmP
+
+# order x1 x3 x2 x4 
+
+x1=findall(x->x==minimum(data[indexrat][indexday][1].historyconfidence[:]),data[indexrat][indexday][1].historyconfidence[:])
+x2=findall(x->x==maximum(vcat(data[indexrat][indexday][1].historyconfidence,data[indexrat][indexday][2].historyconfidence)),vcat(data[indexrat][indexday][1].historyconfidence,data[indexrat][indexday][2].historyconfidence))
+x3=x2.-60; # just a point in the middle 
+x4=x[end];
+
+# 	
+# 	
+# 	
+# 	            __,
+# 	`7M'   `MF'`7MM
+# 	  `VA ,V'    MM
+# 	    XMX      MM
+# 	  ,V' VA.    MM
+# 	.AM.   .MA..JMML.
+# 	
+# 	
+
+argument=0:pi/50:2pi+pi/50;
+xplat=parameters[:r]*cos.(argument);
+yplat=parameters[:r]*sin.(argument);
+xmaze=parameters[:R]*cos.(argument);
+ymaze=parameters[:R]*sin.(argument);
+fig=figure()
+ax=fig.gca()
+
+ax[:set_ylim]([-101,101])
+ax[:set_xlim]([-101,101])
+plot(parameters[:Xplatform][data[indexrat][indexday][1].indexstrategy].+xplat,parameters[:Yplatform][data[indexrat][indexday][1].indexstrategy] .+ yplat,color="darkgrey",lw=1) # goal of current strategy 
+plot(xmaze,ymaze,color="darkslategray", lw=2) # maze boundaries 
+plot(data[indexrat][indexday][1].trajectory[x1,1],data[indexrat][indexday][1].trajectory[x1,2],color="teal","*", markersize=12) # agent 
+plot(data[indexrat][indexday][1].trajectory[1:x1[1],1],data[indexrat][indexday][1].trajectory[1:x1[1],2],color="slateblue",lw=2) # trajectory 
+plot(data[indexrat][indexday][1].real_platform[1].+xplat,data[indexrat][indexday][1].real_platform[2].+ yplat,color="darkgoldenrod",lw=2) # current goal 
+
+ax.set_axis_off()
+
+show()
+
+
+# 	
+# 	
+# 	
+# 	
+# 	`7M'   `MF' pd*"*b.
+# 	  `VA ,V'  (O)   j8
+# 	    XMX        ,;j9
+# 	  ,V' VA.   ,-='
+# 	.AM.   .MA.Ammmmmmm
+# 	
+# 	
+
+
+argument=0:pi/50:2pi+pi/50;
+xplat=parameters[:r]*cos.(argument);
+yplat=parameters[:r]*sin.(argument);
+xmaze=parameters[:R]*cos.(argument);
+ymaze=parameters[:R]*sin.(argument);
+fig=figure()
+ax=fig.gca()
+
+ax[:set_ylim]([-101,101])
+ax[:set_xlim]([-101,101])
+plot(data[indexrat][indexday][1].real_platform[1].+xplat,data[indexrat][indexday][1].real_platform[2].+ yplat,color="darkgoldenrod",lw=2) # current goal 
+plot(parameters[:Xplatform][data[indexrat][indexday][1].indexstrategy].+xplat,parameters[:Yplatform][data[indexrat][indexday][1].indexstrategy] .+ yplat,color="darkgrey",lw=1) # goal of current strategy 
+plot(xmaze,ymaze,color="darkslategray", lw=2) # maze boundaries 
+plot(data[indexrat][indexday][1].trajectory[x2,1],data[indexrat][indexday][1].trajectory[x2,2],color="teal","*", markersize=12)# agent 
+plot(data[indexrat][indexday][1].trajectory[1:x2[1],1],data[indexrat][indexday][1].trajectory[1:x2[1],2],color="slateblue",lw=2) # trajectory 
+
+
+ax.set_axis_off()
+
+show()
+
+# 	
+# 	
+# 	
+# 	
+# 	`7M'   `MF'pd""b.
+# 	  `VA ,V' (O)  `8b
+# 	    XMX        ,89
+# 	  ,V' VA.    ""Yb.
+# 	.AM.   .MA.     88
+# 	          (O)  .M'
+# 	           bmmmd'
+
+argument=0:pi/50:2pi+pi/50;
+xplat=parameters[:r]*cos.(argument);
+yplat=parameters[:r]*sin.(argument);
+xmaze=parameters[:R]*cos.(argument);
+ymaze=parameters[:R]*sin.(argument);
+fig=figure()
+ax=fig.gca()
+
+ax[:set_ylim]([-101,101])
+ax[:set_xlim]([-101,101])
+plot(parameters[:Xplatform][data[indexrat][indexday][1].indexstrategy].+xplat,parameters[:Yplatform][data[indexrat][indexday][1].indexstrategy] .+ yplat,color="darkgrey",lw=1) # goal of current strategy 
+plot(xmaze,ymaze,color="darkslategray", lw=2) # maze boundaries 
+plot(data[indexrat][indexday][1].trajectory[x3,1],data[indexrat][indexday][1].trajectory[x3,2],color="teal","*", markersize=12) # agent 
+plot(data[indexrat][indexday][1].trajectory[1:x3[1],1],data[indexrat][indexday][1].trajectory[1:x3[1],2],color="slateblue",lw=2) # trajectory 
+plot(data[indexrat][indexday][1].real_platform[1].+xplat,data[indexrat][indexday][1].real_platform[2].+ yplat,color="darkgoldenrod",lw=2) # current goal 
+
+ax.set_axis_off()
+
+show()
+
+# 	
+# 	
+# 	
+# 	
+# 	`7M'   `MF'     ,AM
+# 	  `VA ,V'      AVMM
+# 	    XMX      ,W' MM
+# 	  ,V' VA.  ,W'   MM
+# 	.AM.   .MA.AmmmmmMMmm
+# 	                 MM
+# 	                 MM
+
+
+argument=0:pi/50:2pi+pi/50;
+xplat=parameters[:r]*cos.(argument);
+yplat=parameters[:r]*sin.(argument);
+xmaze=parameters[:R]*cos.(argument);
+ymaze=parameters[:R]*sin.(argument);
+fig=figure()
+ax=fig.gca()
+
+ax[:set_ylim]([-101,101])
+ax[:set_xlim]([-101,101])
+plot(data[indexrat][indexday][1].real_platform[1].+xplat,data[indexrat][indexday][1].real_platform[2].+ yplat,color="darkgoldenrod",lw=2) # current goal 
+# plot(parameters[:Xplatform][data[indexrat][indexday][1].indexstrategy].+xplat,parameters[:Yplatform][data[indexrat][indexday][1].indexstrategy] .+ yplat,color="darkgrey",lw=1) # goal of current strategy 
+plot(xmaze,ymaze,color="darkslategray", lw=2) # maze boundaries 
+plot(data[indexrat][indexday][2].trajectory[end,1],data[indexrat][indexday][2].trajectory[end,2],color="teal","*", markersize=12) # agent 
+plot(data[indexrat][indexday][2].trajectory[:,1],data[indexrat][indexday][2].trajectory[:,2],color="slateblue",lw=2) # trajectory 
+
+
+ax.set_axis_off()
+
+show()
+

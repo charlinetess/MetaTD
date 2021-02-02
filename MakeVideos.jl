@@ -516,9 +516,7 @@ for indexrat in [16,17,18,19]
 		global xmaze=parameters[:R]*cos.(argument);
 		global ymaze=parameters[:R]*sin.(argument);
 
-
 		# fig3 = plt.figure(constrained_layout=true)
-
 		# plt.rcParams["figure.constrained_layout.use"] = true
 		# fig3 = plt.figure(figsize=(12,16))#,constrained_layout=true)
 
@@ -539,11 +537,8 @@ for indexrat in [16,17,18,19]
 		#plot(parameters[:Xplatform][data[indexrat][indexday][indextrial].real_platform[1]].+xplat,parameters[:Yplatform][data[indexrat][indexday][indextrial].real_platform[2]] .+ yplat,color="darkgoldenrod",lw=2)
 
 		ax.set_axis_off()
-
-
 		global ax2=fig3[:add_subplot](get(gs,(0,pycall(pybuiltin("slice"), PyObject, 0,2))))
 		#subplot(get(gs,(0,pycall(pybuiltin("slice"), PyObject, 0,4))))
-
 		global line21=ax2[:plot]([],[],color="seagreen",lw=4)[1]
 		global line22=ax2[:plot]([],[],color="lightseagreen",lw=3)[1]
 
