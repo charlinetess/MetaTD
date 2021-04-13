@@ -188,13 +188,13 @@ ax=fig.gca()
 
 ax[:set_ylim]([-101,101])
 ax[:set_xlim]([-101,101])
-plot(xp.+xplat,yp.+ yplat,color="darkgoldenrod",lw=2) # current goal 
+
+plot(xp.+xplat,yp.+ yplat,color="slateblue",lw=2)# current goal 
 # plot(parameters[:Xplatform][data[indexrat][indexday][1].indexstrategy].+xplat,parameters[:Yplatform][data[indexrat][indexday][1].indexstrategy] .+ yplat,color="darkgrey",lw=1) # goal of current strategy 
-plot(xmaze,ymaze,color="darkslategray", lw=2) # maze boundaries 
+plot(xmaze,ymaze,color="darkgrey",lw=1) # maze boundaries 
 # plot(data[indexrat][indexday][2].trajectory[end,1],data[indexrat][indexday][2].trajectory[end,2],color="teal","*", markersize=12) # agent 
-plot(historyX[:],historyY[:],color="slateblue",lw=2) # trajectory 
-
-
+plot(historyX[:],historyY[:],color="darkslategray", lw=2) # trajectory 
+plot(historyX[end],historyY[end],"*",color="teal",markersize=12)
 ax.set_axis_off()
 
 show()
@@ -212,6 +212,17 @@ labels=[" ", "SW","S","SE","E","NE","N","NW","W"]
 ax.set_xticklabels(labels)
 ax.set_xlabel("Direction")#,size=18)
 ax.set_ylabel("Mean probability during trial")#,size=18)
+SMALL_SIZE = 18
+MEDIUM_SIZE = 20
+BIGGER_SIZE = 30
+
+plt.rc("font", size=SMALL_SIZE)          # controls default text sizes
+plt.rc("axes", titlesize=SMALL_SIZE)     # fontsize of the axes title
+plt.rc("axes", labelsize=MEDIUM_SIZE)    # fontsize of the x and y labels
+plt.rc("xtick", labelsize=SMALL_SIZE)    # fontsize of the tick labels
+plt.rc("ytick", labelsize=SMALL_SIZE)    # fontsize of the tick labels
+plt.rc("legend", fontsize=SMALL_SIZE)    # legend fontsize
+plt.rc("figure", titlesize=BIGGER_SIZE)  # fontsize of the figure title
 
 show()
 

@@ -556,8 +556,8 @@ labels[findall(x->x==(x4.-x2)[1],majors2)[1]] = ""
 
 # labels[end]
 
-ylabel(latexstring("\$\\sigma\$"),size=18,color="seagreen")
-xlabel("time since trial onset (ms)",size=18)
+ylabel(latexstring("\$\\sigma\$"),size=18,color="seagreen",rotation=0)
+# xlabel("Time (ms)",size=18)
 
 # # labels[1]="" # no space for both 
 # labels[end-1]=""
@@ -566,7 +566,7 @@ ax2.set_xticklabels(labels)
 ax2.tick_params(axis="y", labelcolor="seagreen")
 
 ax3=ax2.twinx()
-ax3.set_ylabel(latexstring("\$\\beta\$"),size=18,color="darkslateblue")
+ax3.set_ylabel(latexstring("\$\\beta\$"),size=18,color="darkslateblue",rotation=0)
 
 ax3.plot(x,vcat(data[indexrat][indexday][1].historytemperature[:],data[indexrat][indexday][2].historytemperature[:]),color="darkslateblue",lw=2)  # confidence
 ax3[:set_ylim]([minimum(vcat(data[indexrat][indexday][1].historytemperature,data[indexrat][indexday][2].historytemperature))-minimum(vcat(data[indexrat][indexday][1].historytemperature,data[indexrat][indexday][2].historytemperature))/10,maximum(vcat(data[indexrat][indexday][1].historytemperature,data[indexrat][indexday][2].historytemperature))+maximum(vcat(data[indexrat][indexday][1].historytemperature,data[indexrat][indexday][2].historytemperature))/10])
@@ -576,6 +576,17 @@ ax3.spines["left"].set_color("none")
 ax3.spines["bottom"].set_visible("False")
 ax3.spines["right"].set_visible("False") 
 ax3.tick_params(axis="y", labelcolor="darkslateblue")
+SMALL_SIZE = 18
+MEDIUM_SIZE = 20
+BIGGER_SIZE = 30
+
+plt.rc("font", size=SMALL_SIZE)          # controls default text sizes
+plt.rc("axes", titlesize=SMALL_SIZE)     # fontsize of the axes title
+plt.rc("axes", labelsize=MEDIUM_SIZE)    # fontsize of the x and y labels
+plt.rc("xtick", labelsize=SMALL_SIZE)    # fontsize of the tick labels
+plt.rc("ytick", labelsize=SMALL_SIZE)    # fontsize of the tick labels
+plt.rc("legend", fontsize=SMALL_SIZE)    # legend fontsize
+plt.rc("figure", titlesize=BIGGER_SIZE)  # fontsize of the figure title
 
 
 show()
@@ -626,19 +637,16 @@ ax=fig.gca()
 
 ax[:set_ylim]([-101,101])
 ax[:set_xlim]([-101,101])
-plot(parameters[:Xplatform][data[indexrat][indexday][1].indexstrategy].+xplat,parameters[:Yplatform][data[indexrat][indexday][1].indexstrategy] .+ yplat,color="darkgrey",lw=1) # goal of current strategy 
-plot(xmaze,ymaze,color="darkslategray", lw=2) # maze boundaries 
-plot(data[indexrat][indexday][1].trajectory[x1,1],data[indexrat][indexday][1].trajectory[x1,2],color="teal","*", markersize=12) # agent 
-plot(data[indexrat][indexday][1].trajectory[1:x1[1],1],data[indexrat][indexday][1].trajectory[1:x1[1],2],color="slateblue",lw=2) # trajectory 
-plot(data[indexrat][indexday][1].real_platform[1].+xplat,data[indexrat][indexday][1].real_platform[2].+ yplat,color="darkgoldenrod",lw=2) # current goal 
+plot(parameters[:Xplatform][data[indexrat][indexday][1].indexstrategy].+xplat,parameters[:Yplatform][data[indexrat][indexday][1].indexstrategy] .+ yplat,color="darkgreen",lw=1) # goal of current strategy 
+plot(xmaze,ymaze,color="darkgrey",lw=1) # maze boundaries 
+plot(data[indexrat][indexday][1].trajectory[x1,1],data[indexrat][indexday][1].trajectory[x1,2],"*",color="teal",markersize=12) # agent 
+plot(data[indexrat][indexday][1].trajectory[1:x1[1],1],data[indexrat][indexday][1].trajectory[1:x1[1],2],color="darkslategray", lw=2) # trajectory 
+plot(data[indexrat][indexday][1].real_platform[1].+xplat,data[indexrat][indexday][1].real_platform[2].+ yplat,color="slateblue",lw=2) # current goal 
 
 ax.set_axis_off()
 
 show()
 
-
-# 	
-# 	
 # 	
 # 	
 # 	`7M'   `MF' pd*"*b.
@@ -660,12 +668,13 @@ ax=fig.gca()
 
 ax[:set_ylim]([-101,101])
 ax[:set_xlim]([-101,101])
-plot(data[indexrat][indexday][1].real_platform[1].+xplat,data[indexrat][indexday][1].real_platform[2].+ yplat,color="darkgoldenrod",lw=2) # current goal 
+plot(data[indexrat][indexday][1].real_platform[1].+xplat,data[indexrat][indexday][1].real_platform[2].+ yplat,color="slateblue",lw=2) # current goal 
 plot(parameters[:Xplatform][data[indexrat][indexday][1].indexstrategy].+xplat,parameters[:Yplatform][data[indexrat][indexday][1].indexstrategy] .+ yplat,color="darkgrey",lw=1) # goal of current strategy 
-plot(xmaze,ymaze,color="darkslategray", lw=2) # maze boundaries 
-plot(data[indexrat][indexday][1].trajectory[x2,1],data[indexrat][indexday][1].trajectory[x2,2],color="teal","*", markersize=12)# agent 
-plot(data[indexrat][indexday][1].trajectory[1:x2[1],1],data[indexrat][indexday][1].trajectory[1:x2[1],2],color="slateblue",lw=2) # trajectory 
+plot(xmaze,ymaze,color="darkgrey",lw=1) # maze boundaries 
+plot(data[indexrat][indexday][1].trajectory[x2,1],data[indexrat][indexday][1].trajectory[x2,2],"*",color="teal",markersize=12)# agent 
+plot(data[indexrat][indexday][1].trajectory[1:x2[1],1],data[indexrat][indexday][1].trajectory[1:x2[1],2],color="darkslategray", lw=2) # trajectory 
 
+plot(parameters[:Xplatform][data[indexrat][indexday][1].indexstrategy].+xplat,parameters[:Yplatform][data[indexrat][indexday][1].indexstrategy] .+ yplat,color="darkgreen",lw=1) # goal of current strategy 
 
 ax.set_axis_off()
 
@@ -693,11 +702,12 @@ ax=fig.gca()
 
 ax[:set_ylim]([-101,101])
 ax[:set_xlim]([-101,101])
-plot(parameters[:Xplatform][data[indexrat][indexday][1].indexstrategy].+xplat,parameters[:Yplatform][data[indexrat][indexday][1].indexstrategy] .+ yplat,color="darkgrey",lw=1) # goal of current strategy 
-plot(xmaze,ymaze,color="darkslategray", lw=2) # maze boundaries 
-plot(data[indexrat][indexday][1].trajectory[x3,1],data[indexrat][indexday][1].trajectory[x3,2],color="teal","*", markersize=12) # agent 
-plot(data[indexrat][indexday][1].trajectory[1:x3[1],1],data[indexrat][indexday][1].trajectory[1:x3[1],2],color="slateblue",lw=2) # trajectory 
-plot(data[indexrat][indexday][1].real_platform[1].+xplat,data[indexrat][indexday][1].real_platform[2].+ yplat,color="darkgoldenrod",lw=2) # current goal 
+plot(parameters[:Xplatform][data[indexrat][indexday][1].indexstrategy].+xplat,parameters[:Yplatform][data[indexrat][indexday][1].indexstrategy] .+ yplat,color="darkgreen",lw=1) # goal of current strategy 
+plot(xmaze,ymaze,color="darkgrey",lw=1) # maze boundaries 
+plot(data[indexrat][indexday][1].trajectory[x3,1],data[indexrat][indexday][1].trajectory[x3,2],"*",color="teal",markersize=12) # agent 
+plot(data[indexrat][indexday][1].trajectory[1:x3[1],1],data[indexrat][indexday][1].trajectory[1:x3[1],2],color="darkslategray", lw=2)# trajectory 
+plot(data[indexrat][indexday][1].real_platform[1].+xplat,data[indexrat][indexday][1].real_platform[2].+ yplat,color="slateblue",lw=2) # current goal 
+
 
 ax.set_axis_off()
 
@@ -726,11 +736,11 @@ ax=fig.gca()
 
 ax[:set_ylim]([-101,101])
 ax[:set_xlim]([-101,101])
-plot(data[indexrat][indexday][1].real_platform[1].+xplat,data[indexrat][indexday][1].real_platform[2].+ yplat,color="darkgoldenrod",lw=2) # current goal 
+plot(data[indexrat][indexday][1].real_platform[1].+xplat,data[indexrat][indexday][1].real_platform[2].+ yplat,color="slateblue",lw=2) # current goal 
 # plot(parameters[:Xplatform][data[indexrat][indexday][1].indexstrategy].+xplat,parameters[:Yplatform][data[indexrat][indexday][1].indexstrategy] .+ yplat,color="darkgrey",lw=1) # goal of current strategy 
-plot(xmaze,ymaze,color="darkslategray", lw=2) # maze boundaries 
-plot(data[indexrat][indexday][2].trajectory[end,1],data[indexrat][indexday][2].trajectory[end,2],color="teal","*", markersize=12) # agent 
-plot(data[indexrat][indexday][2].trajectory[:,1],data[indexrat][indexday][2].trajectory[:,2],color="slateblue",lw=2) # trajectory 
+plot(xmaze,ymaze,color="darkgrey",lw=1) # maze boundaries 
+plot(data[indexrat][indexday][2].trajectory[end,1],data[indexrat][indexday][2].trajectory[end,2],"*",color="teal",markersize=12) # agent 
+plot(data[indexrat][indexday][2].trajectory[:,1],data[indexrat][indexday][2].trajectory[:,2],color="darkslategray", lw=2) # trajectory 
 
 
 ax.set_axis_off()
