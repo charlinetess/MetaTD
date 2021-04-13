@@ -112,7 +112,8 @@ numberoftrialstest=4;
 numberofdaystest=8;
 
 meta_parameters=Dict(:numberofstrategies=>numberofstrategies,:β=>β,:h=>h,:ρ=>ρ,:τconfidence=>τconfidence,:numberoftrialstest=>numberoftrialstest,:numberofdaystest=>numberofdaystest);
-NameOfFile="Meta_newParameter.jld2"
+
+NameOfFile="Meta_newGoalPredictionErrors.jld2"
 
 
 name_train_file="LearnWeights.jld2";
@@ -160,10 +161,8 @@ function MetaRL(name_train_file,meta_parameters,NameOfFile)
 								estimated_valuemap=data[indexrat][indexstrategy].valuemap; # value map associated to this policy 
 
 								# Initialise index to save the trajectory and the values 
-								
 								k=1;
 								# initialise time 
-								
 								t=parameters[:times][k];      
 								timeout=0;        
 								prevdir=[0 0];   
@@ -290,6 +289,9 @@ function MetaRL(name_train_file,meta_parameters,NameOfFile)
 										if SPE[indexstrategy]<0 # the first encounter with a negative strategy prediction error reduces the confidence and we dont reduce it afterwards
 											deception=1
 										end 
+
+										# confidence=confidencedynamics(confidence,SPE[indexstrategy]*temperature/2,meta_parameters) # confidence gets a shot of -1 when it thinks it is on the goal 
+							
 
 										push!(historySPE,SPE)
 										push!(historyconfidence,confidence)

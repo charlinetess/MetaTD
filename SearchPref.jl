@@ -356,9 +356,9 @@ ioff()
 fig = figure("Test plot search Preference",figsize=(4,9))
 ax = gca()
 
-SMALL_SIZE = 15
-MEDIUM_SIZE = 30
-BIGGER_SIZE = 30
+SMALL_SIZE = 10
+MEDIUM_SIZE = 10
+BIGGER_SIZE = 10
 
 plt.rc("font", size=SMALL_SIZE)          # controls default text sizes
 plt.rc("axes", titlesize=SMALL_SIZE)     # fontsize of the axes title

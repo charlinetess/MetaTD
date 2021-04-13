@@ -17,6 +17,10 @@ zoom= pyimport("mpl_toolkits.axes_grid1.inset_locator") # for embeddded plots
 
 
 rats=load("Meta_newParameter.jld2"); 
+
+# rats=load("Meta_newGoalPredictionErrors.jld2"); # doesnt work 
+
+
 parameters=rats["parameters"];
 meta_parameters=rats["meta_parameters"]
 features=rats["features"];
@@ -113,6 +117,7 @@ show()
 
 
 clf()
+
 ioff()
 let fig,ax
 
@@ -148,7 +153,9 @@ let fig,ax
 	ax.spines["bottom"].set_visible("False")
 	ax.spines["left"].set_visible("False")
 	  ymin, ymax = ax.get_ylim()
+	  xmin,xmax=ax.get_xlim()
 	ax[:set_ylim]([0,ymax])
+	ax[:set_xlim]([0,xmax])
 	xmin, xmax = ax.get_xlim() 
 	ymin, ymax = ax.get_ylim()
 	# get width and height of axes object to compute 
@@ -171,7 +178,7 @@ let fig,ax
 
 	#rc("font", family="serif",size=16)
 	#title("One-shot learning in artificial watermaze")
-	xlabel("Trials ")#, fontsize=18);
+	xlabel("Trials to same goal location")#, fontsize=18);
 	ylabel("Latencies")#, fontsize=18)
 
 	#labels = [item.get_text() for item in ax.get_xticklabels()]
@@ -459,6 +466,19 @@ show()
 # 	  `"bmmmd'  `Ybmd9'.JMML  JMML..JMML.
 # 	
 # 	
+# this generates figure 6.9 of thesis, with the following file and : 
+
+# rats=load("Meta_newParameter.jld2"); 
+
+
+# parameters=rats["parameters"];
+# meta_parameters=rats["meta_parameters"]
+# features=rats["features"];
+# data=rats["data"]; # Fields are  trajectory historySPE latency historyconfidence real_TDerrors estimated_TDerrors historytemperature real_platform indexstrategy 
+# indexrat=16;
+# indexday=4;
+# angles=[2*pi*l/parameters[:NA] for l=1:parameters[:NA]];
+
 
 fig=figure(figsize=(50,5))
 ax2=fig.gca()
@@ -518,6 +538,9 @@ labels=[string(majors2[k]) for k=1:length(majors2) ];
 # text(x3, ymax[1]-ymax[1]/5, "c",size=20)
 # text(x4, ymax[1]-ymax[1]/5, "e",size=20)
 
+
+
+
 ax2.annotate("e", xy=[x4, ymax[1]-ymax[1]/10], xytext=[x3.-50, (ymax[2]+ymax[1])/2],arrowprops=Dict("facecolor"=>"black","shrink"=>0.05,"width"=>1,"headwidth"=>4),size=18)#,"shrink"=>0.05])
 
 ax2.annotate("b", xy=[x1, ymax[1]-ymax[1]/10], xytext=[x1.+50, (ymax[2]+ymax[1])/2],arrowprops=Dict("facecolor"=>"black","shrink"=>0.05,"width"=>1,"headwidth"=>4),size=18)#,"shrink"=>0.05])
@@ -556,6 +579,11 @@ ax3.tick_params(axis="y", labelcolor="darkslateblue")
 
 
 show()
+
+
+
+
+
 
 # 	
 # 	                                  ,,

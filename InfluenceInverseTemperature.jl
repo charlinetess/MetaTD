@@ -79,7 +79,7 @@ function indice(Acum,x) # x number, Acum vector
 end
 
 
-temperature=0.4;
+temperature=2;
 
 # Initialise index to save the trajectory and the values 
 k=1;
@@ -208,6 +208,10 @@ ax.spines["top"].set_color("none")
 ax.spines["right"].set_color("none")
 ax.spines["bottom"].set_visible("False")
 ax.spines["left"].set_visible("False")
+labels=[" ", "SW","S","SE","E","NE","N","NW","W"]
+ax.set_xticklabels(labels)
+ax.set_xlabel("Direction")#,size=18)
+ax.set_ylabel("Mean probability during trial")#,size=18)
 
 show()
 
